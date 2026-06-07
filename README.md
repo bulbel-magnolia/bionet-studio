@@ -1,41 +1,34 @@
 # bionet-studio
 
-> Design and predict genetic circuits as neural networks — an open, client-side workbench for synthetic-biology teams.
+> 把生物线路当神经网络来「设计 + 预测」的纯前端开放工作台,面向所有合成生物学团队。
 
-**把生物线路当神经网络来「设计 + 预测」的纯前端开放工作台。**
+bionet-studio 让你把一条基因线路按分层网络搭出来——输入层是感受元件,隐藏层是启动子与受体之间的串扰(对应权重),输出层是报告元件——既能**正向预测**它的输入–输出行为,也能反过来:给定目标功能,**反向训练**出需要的参数与元件。
 
-bionet-studio lets you lay a genetic circuit out as a layered network — input layer
-(sensor parts) → hidden layer (promoter / receptor crosstalk = weights) → output layer
-(reporter parts) — then **predict** its input–output behaviour forward, and **design** it
-backward by training parameters toward a target function.
+面向所有 iGEM / 合成生物学团队。元件遵循「结构真实、数值示意 + 注明待标定」的原则:能查到可核实的 iGEM Registry 或文献参数就用真值,查不到的就明确标注出来,留给使用者自行标定。
 
-Built for all iGEM / synbio teams. Parts are *structurally real, values illustrative and
-marked for calibration*; verifiable iGEM Registry / literature parameters are used where
-available.
+## 当前状态
 
-## Status
+早期规划阶段,里程碑 **M0**。本仓库目前包含:
 
-Early planning — milestone **M0**. This repo currently holds:
+1. `平台规划/` —— 项目活文档:愿景、概念模型、系统架构、路线图(M0–M6),以及防幻觉的数据纪律。
+2. `demos/demo3-通用平台/` —— 可用的单神经元原型(零依赖、离线 HTML;平台所基于的数学内核与设计系统就来自它)。
+3. `预览图/` —— UI 设计稿(深色「控制台」与浅色「实验台」两套主题)。
 
-- `平台规划/` — the living project plan: vision, concept model, architecture, roadmap (M0–M6) and the anti-hallucination data discipline.
-- `demos/demo3-通用平台/` — the working single-neuron prototype (zero-dependency, offline HTML; the math kernel and design system the platform builds on).
-- `预览图/` — UI design mock-ups (dark "console" / light "lab bench" themes).
+生产级平台(多层引擎 + 元件库 + 单页应用)正按规划里的路线图推进。
 
-The production platform (multilayer engine + parts library + SPA) is being built per the roadmap in the plan.
+## 核心思路
 
-## Concept
-
-| Neural network | Genetic circuit |
+| 神经网络 | 基因线路 |
 |---|---|
-| input node | sensor part (analyte → signal, Hill-encoded) |
-| weight matrix | promoter / receptor crosstalk (non-orthogonality) |
-| activation | promoter non-linear response (Hill / sigmoid) |
-| output node | reporter part |
-| memory | bistable latch |
-| training | tuning promoter strength / receptor count / copy number |
+| 输入层节点 | 感受元件(分析物浓度经 Hill 编码成信号) |
+| 权重矩阵 | 启动子与受体之间的串扰(非正交性) |
+| 激活函数 | 启动子的非线性响应(Hill / sigmoid) |
+| 输出层节点 | 报告元件 |
+| 记忆 | 双稳态锁 |
+| 训练 | 调整启动子强度 / 受体数量 / 质粒拷贝数 |
 
-Full design: [`平台规划/01_总体规划_v0.1.md`](平台规划/01_总体规划_v0.1.md).
+完整设计见 [`平台规划/01_总体规划_v0.1.md`](平台规划/01_总体规划_v0.1.md)。
 
-## License
+## 许可
 
-[MIT](LICENSE). Released open-source in keeping with iGEM's software requirements.
+[MIT](LICENSE)。按 iGEM 软件赛道要求开源发布。
