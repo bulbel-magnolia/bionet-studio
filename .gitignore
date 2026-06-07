@@ -1,0 +1,22 @@
+# Third-party reference tool: a local clone of CIDARLAB/Cello plus its venv and
+# generated outputs. Useful locally for studying prior art, NOT part of this project.
+/Cello/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+
+# demo build artefacts / history snapshots / screenshots (regenerable)
+demos/_backup_pre_v3/
+demos/_screenshots/
+demos/_screenshots_v3/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
