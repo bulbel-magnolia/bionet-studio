@@ -9,10 +9,10 @@ const SNAP = 24; // px (world) hit radius for connect targets
 const KIND_RANK = { sensor: 0, signal: 1, response: 2, memory: 3, reporter: 4 };
 
 const LAYER_BANDS = [
-  { x: 38,  w: 224, label: "INPUTS",     key: "sensor" },
-  { x: 292, w: 200, label: "REGULATORS", key: "signal" },
-  { x: 522, w: 216, label: "RESPONSE",   key: "response" },
-  { x: 788, w: 200, label: "OUTPUTS",    key: "reporter" },
+  { x: 38,  w: 224, labelKey: "layerInputs",     key: "sensor" },
+  { x: 292, w: 200, labelKey: "layerRegulators", key: "signal" },
+  { x: 522, w: 216, labelKey: "layerResponse",   key: "response" },
+  { x: 788, w: 200, labelKey: "layerOutputs",    key: "reporter" },
 ];
 
 function portOut(nd) { return { x: nd.x + NODE_W, y: nd.y + NODE_H / 2 }; }
@@ -25,6 +25,7 @@ const fmt = (v) => (v == null ? "—" : (Math.abs(v) >= 100 ? v.toFixed(0) : v.t
 
 function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canTarget,
                    onSelect, onDragStart, onPortDown, onDelete, onDuplicate }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const meta = window.Model.KIND_META[nd.kind];
   const tint = window.Model.nodeTint(nd);
   const heat = act ?? 0;
@@ -43,7 +44,7 @@ function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canT
         <div className="node-head">
           <span className="node-glyph"><Icon name={window.KIND_ICON[nd.kind]} size={14} sw={1.8} /></span>
           <span className="node-label">{nd.label}</span>
-          <span className="node-cal" title="Illustrative — to be calibrated"></span>
+          <span className="node-cal" title={tr("illustrative")}></span>
         </div>
         <div className="node-meta">
           <span className="node-role">{meta.role}</span>
@@ -57,11 +58,11 @@ function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canT
       {hasIn && <span className={"port port-in" + (connecting && canTarget ? " avail" : "") + (isTarget ? " hot" : "")}></span>}
       {hasOut && <span className="port port-out"
         onPointerDown={(e) => { e.stopPropagation(); onPortDown(e, nd.id); }}
-        title="Drag to connect"></span>}
+        title={tr("dragConnect")}></span>}
       {selected && (
         <div className="node-actions" onPointerDown={(e) => e.stopPropagation()}>
-          <button className="node-act-btn" title="Duplicate" onClick={(e) => { e.stopPropagation(); onDuplicate(nd.id); }}><Icon name="copy" size={13} /></button>
-          <button className="node-act-btn danger" title="Delete" onClick={(e) => { e.stopPropagation(); onDelete(nd.id); }}><Icon name="trash" size={13} /></button>
+          <button className="node-act-btn" title={tr("duplicate")} onClick={(e) => { e.stopPropagation(); onDuplicate(nd.id); }}><Icon name="copy" size={13} /></button>
+          <button className="node-act-btn danger" title={tr("delete")} onClick={(e) => { e.stopPropagation(); onDelete(nd.id); }}><Icon name="trash" size={13} /></button>
         </div>
       )}
     </div>
@@ -72,6 +73,7 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
   const wrapRef = React.useRef(null);
   const drag = React.useRef(null);
   const [connect, setConnect] = React.useState(null); // { fromId, wx, wy, targetId }
+  const tr = (key) => window.I18n?.t(key) || key;
 
   const nodeById = React.useMemo(() => {
     const m = {}; model.nodes.forEach((n) => (m[n.id] = n)); return m;
@@ -179,7 +181,7 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
           {LAYER_BANDS.map((b) => (
             <g key={b.key}>
               <rect x={b.x} y={20} width={b.w} height={WORLD_H - 40} rx="10" className="layer-band" />
-              <text x={b.x + b.w / 2} y={38} textAnchor="middle" className="layer-label">{b.label}</text>
+              <text x={b.x + b.w / 2} y={38} textAnchor="middle" className="layer-label">{tr(b.labelKey)}</text>
             </g>
           ))}
           <defs>
@@ -228,17 +230,17 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
       </div>
 
       <div className="canvas-tools">
-        <button className="iconbtn" title="Zoom out" onClick={() => setView({ ...view, z: Math.max(0.45, view.z * 0.9) })}><Icon name="minus" size={15} /></button>
+        <button className="iconbtn" title={tr("zoomOut")} onClick={() => setView({ ...view, z: Math.max(0.45, view.z * 0.9) })}><Icon name="minus" size={15} /></button>
         <span className="num canvas-zoom">{Math.round(view.z * 100)}%</span>
-        <button className="iconbtn" title="Zoom in" onClick={() => setView({ ...view, z: Math.min(2.2, view.z * 1.1) })}><Icon name="add" size={15} /></button>
+        <button className="iconbtn" title={tr("zoomIn")} onClick={() => setView({ ...view, z: Math.min(2.2, view.z * 1.1) })}><Icon name="add" size={15} /></button>
         <span className="canvas-tools-sep"></span>
-        <button className="iconbtn" title="Fit to view" onClick={fit}><Icon name="fit" size={15} /></button>
+        <button className="iconbtn" title={tr("fitView")} onClick={fit}><Icon name="fit" size={15} /></button>
       </div>
 
       <div className="canvas-legend">
-        <span className="lg"><span className="lg-line" style={{ background: "var(--accent)" }}></span>activate</span>
-        <span className="lg"><span className="lg-line dash" style={{ background: "var(--c-inhibit)" }}></span>inhibit</span>
-        <span className="lg lg-note">drag a port to connect forward</span>
+        <span className="lg"><span className="lg-line" style={{ background: "var(--accent)" }}></span>{tr("activate")}</span>
+        <span className="lg"><span className="lg-line dash" style={{ background: "var(--c-inhibit)" }}></span>{tr("inhibit")}</span>
+        <span className="lg lg-note">{tr("dragForward")}</span>
       </div>
     </div>
   );

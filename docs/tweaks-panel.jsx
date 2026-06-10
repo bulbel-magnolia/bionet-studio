@@ -194,11 +194,13 @@ function useTweaks(defaults) {
 // The close button posts __edit_mode_dismissed so the host's toolbar toggle
 // flips off in lockstep; the host echoes __deactivate_edit_mode back which
 // is what actually hides the panel.
-function TweaksPanel({ title = 'Tweaks', children }) {
+function TweaksPanel({ title, children }) {
   const [open, setOpen] = React.useState(false);
   const dragRef = React.useRef(null);
   const offsetRef = React.useRef({ x: 16, y: 16 });
   const PAD = 16;
+  const panelTitle = title || window.I18n?.t('settings') || 'Tweaks';
+  const closeLabel = window.I18n?.t('closeTweaks') || 'Close tweaks';
 
   const clampToViewport = React.useCallback(() => {
     const panel = dragRef.current;
@@ -271,8 +273,8 @@ function TweaksPanel({ title = 'Tweaks', children }) {
       <div ref={dragRef} className="twk-panel" data-omelette-chrome=""
            style={{ right: offsetRef.current.x, bottom: offsetRef.current.y }}>
         <div className="twk-hd" onMouseDown={onDragStart}>
-          <b>{title}</b>
-          <button className="twk-x" aria-label="Close tweaks"
+          <b>{panelTitle}</b>
+          <button className="twk-x" aria-label={closeLabel}
                   onMouseDown={(e) => e.stopPropagation()}
                   onClick={dismiss}>✕</button>
         </div>

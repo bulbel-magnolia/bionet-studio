@@ -26,7 +26,7 @@
   }
 
   function aggregateSpec(project) {
-    return project.aggregate || project.params?.aggregate || { label: "Aggregate output", mode: "outputs" };
+    return project.aggregate || project.params?.aggregate || { label: window.I18n?.t("outputsWord") || "Aggregate output", mode: "outputs" };
   }
 
   function terminalNodeIds(project) {

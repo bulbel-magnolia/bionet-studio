@@ -20,6 +20,7 @@ let _uid = 100;
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const [lang, setLang] = useState(() => window.I18n?.lang || "zh");
   const [project, setProject] = useState(() => window.Model.defaultProject());
   const [selection, setSelection] = useState(null);
   const [page, setPage] = useState("workbench");
@@ -30,6 +31,14 @@ function App() {
   const [latched, setLatched] = useState({});
   const [dirty, setDirty] = useState(false);
   const fileRef = useRef(null);
+  const tr = (key) => window.I18n?.t(key) || key;
+
+  const switchLang = useCallback(() => {
+    const next = window.I18n.nextLang();
+    window.I18n.switchTo(next);
+    setLang(next);
+    window.location.reload();
+  }, []);
 
   // ---- theme & tokens -------------------------------------------
   useEffect(() => { document.documentElement.setAttribute("data-theme", t.dark ? "dark" : "light"); }, [t.dark]);
@@ -118,7 +127,7 @@ function App() {
     const nid = "n_" + (_uid++);
     edit((p) => {
       const src = p.nodes.find((n) => n.id === id); if (!src) return p;
-      return { ...p, nodes: [...p.nodes, { ...src, id: nid, x: src.x + 30, y: src.y + 38, label: src.label + " copy" }] };
+      return { ...p, nodes: [...p.nodes, { ...src, id: nid, x: src.x + 30, y: src.y + 38, label: src.label + " " + (window.I18n?.t("copiedNode") || "copy") }] };
     });
     setSelection({ type: "node", id: nid });
   }, [edit]);
@@ -126,7 +135,7 @@ function App() {
   const addNode = useCallback((kind) => {
     const meta = window.Model.KIND_META[kind];
     const id = kind + "_" + (_uid++);
-    const node = { id, kind, label: meta.label, sub: "new", x: 410 + Math.random() * 70, y: 70 + Math.random() * 60 };
+    const node = { id, kind, label: meta.label, sub: lang === "zh" ? "新建" : "new", x: 410 + Math.random() * 70, y: 70 + Math.random() * 60 };
     (window.Model.PARAM_SCHEMA[kind] || []).forEach((pp) => {
       node[pp.key] = pp.key === "C" ? 0.4 : pp.key === "Km" ? 0.5 : pp.key === "n" ? 2 : pp.key === "weight" ? 0.3
         : pp.key === "gain" ? 3.2 : pp.key === "tauMature" ? 4 : pp.key === "gainOut" ? 1 : 0;
@@ -144,7 +153,7 @@ function App() {
   };
   const newProject = () => {
     const p = window.Model.defaultProject();
-    p.meta = { id: "untitled", name: "Untitled network", kind: "user", domain: "Custom", note: "A blank network from the default backbone." };
+    p.meta = { id: "untitled", name: tr("untitledNetwork"), kind: "user", domain: tr("custom"), note: lang === "zh" ? "从默认骨架创建的空白网络。" : "A blank network from the default backbone." };
     setProject(p); setSelection(null); setLatched({}); setDirty(false);
   };
 
@@ -166,7 +175,7 @@ function App() {
         if (pr?.nodes && pr?.edges) {
           if (!pr.readouts) pr.readouts = window.Model.defaultProject().readouts;
           if (!pr.aggregate) pr.aggregate = window.Model.defaultProject().aggregate;
-          if (!pr.meta) pr.meta = { id: "import", name: "Imported network", kind: "user", domain: "Custom", note: "" };
+          if (!pr.meta) pr.meta = { id: "import", name: tr("importedNetwork"), kind: "user", domain: tr("custom"), note: "" };
           pr.meta.kind = "user";
           setProject(pr); setSelection(null); setLatched({}); setDirty(false);
         }
@@ -186,6 +195,7 @@ function App() {
       <TopBar project={project} verdict={verdict} examples={window.Model.EXAMPLES} dirty={dirty}
         onPickExample={pickExample} onNewProject={newProject}
         onImport={doImport} onExport={doExportClean} onRun={onRun}
+        lang={lang} onLang={switchLang}
         libOpen={libOpen} inspOpen={inspOpen}
         onToggleLib={() => setLibOpen((o) => !o)} onToggleInsp={() => setInspOpen((o) => !o)} />
 
@@ -218,16 +228,20 @@ function App() {
 
       <input ref={fileRef} type="file" accept="application/json" style={{ display: "none" }} onChange={onFile} />
 
-      <TweaksPanel>
-        <TweakSection label="Theme" />
-        <TweakToggle label="Dark mode" value={t.dark} onChange={(v) => setTweak("dark", v)} />
-        <TweakColor label="Accent" value={t.accent}
+      <TweaksPanel title={tr("settings")}>
+        <TweakSection label={tr("theme")} />
+        <TweakToggle label={tr("darkMode")} value={t.dark} onChange={(v) => setTweak("dark", v)} />
+        <TweakColor label={tr("accent")} value={t.accent}
           options={["#3E8EF7", "#2DBE9E", "#3FCB84", "#E6B24A", "#E8709E"]}
           onChange={(v) => setTweak("accent", v)} />
-        <TweakSection label="Workspace" />
-        <TweakRadio label="Density" value={t.density} options={["compact", "regular", "comfy"]}
+        <TweakSection label={tr("workspace")} />
+        <TweakRadio label={tr("density")} value={t.density} options={[
+          { value: "compact", label: tr("compact") },
+          { value: "regular", label: tr("regular") },
+          { value: "comfy", label: tr("comfy") },
+        ]}
           onChange={(v) => setTweak("density", v)} />
-        <TweakToggle label="Canvas grid" value={t.showGrid} onChange={(v) => setTweak("showGrid", v)} />
+        <TweakToggle label={tr("canvasGrid")} value={t.showGrid} onChange={(v) => setTweak("showGrid", v)} />
       </TweaksPanel>
     </div>
   );

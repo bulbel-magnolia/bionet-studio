@@ -6,12 +6,13 @@
 function LibraryDock({ project, sim, onAddNode, onQuickInput, onSelect, selection }) {
   const { TYPES, TYPE_GROUPS } = window.Model;
   const sensors = project.nodes.filter((n) => n.kind === "sensor");
+  const tr = (key) => window.I18n?.t(key) || key;
   return (
     <aside className="libdock">
       <div className="libdock-scroll">
         <div className="lib-sect">
-          <div className="lib-sect-head"><span className="eyebrow">Element palette</span>
-            <span className="lib-sect-tag">click to place</span></div>
+          <div className="lib-sect-head"><span className="eyebrow">{tr("elementPalette")}</span>
+            <span className="lib-sect-tag">{tr("clickToPlace")}</span></div>
           {TYPE_GROUPS.map((g) => (
             <div key={g} className="palette-group">
               <div className="palette-group-h">{g}</div>
@@ -28,17 +29,17 @@ function LibraryDock({ project, sim, onAddNode, onQuickInput, onSelect, selectio
         </div>
 
         <div className="lib-sect">
-          <div className="lib-sect-head"><span className="eyebrow">Sources</span><span className="badge b-soon">soon</span></div>
+          <div className="lib-sect-head"><span className="eyebrow">{tr("sources")}</span><span className="badge b-soon">{tr("soon")}</span></div>
           <div className="lib-filters">
-            {["Illustrative", "Calibrated", "User-defined", "Verified"].map((f, i) => (
+            {[tr("illustrative"), tr("calibrated"), tr("userDefined"), tr("verified")].map((f, i) => (
               <span key={f} className={"lib-filter" + (i === 0 ? " on" : "")}>{f}</span>
             ))}
           </div>
-          <p className="lib-hint sm">Verified biological parts will be a curated module — distinct from these abstract element types.</p>
+          <p className="lib-hint sm">{tr("sourceNote")}</p>
         </div>
 
         <div className="lib-sect">
-          <div className="lib-sect-head"><span className="eyebrow">Inputs · quick set</span><span className="lib-sect-tag mono">a.u.</span></div>
+          <div className="lib-sect-head"><span className="eyebrow">{tr("quickSet")}</span><span className="lib-sect-tag mono">a.u.</span></div>
           <div className="lib-inputs">
             {sensors.map((s) => {
               const sig = sim?.signals?.[s.id] ?? 0;
@@ -55,7 +56,7 @@ function LibraryDock({ project, sim, onAddNode, onQuickInput, onSelect, selectio
                     style={{ "--pct": (s.C / 1.5 * 100) + "%", "--accent": "var(--k-sensor)" }} />
                   <div className="lib-input-sig">
                     <div className="lib-input-sig-bar"><div style={{ width: (sig * 100) + "%" }}></div></div>
-                    <span className="num">sig {sig.toFixed(2)}</span>
+                    <span className="num">{tr("signal")} {sig.toFixed(2)}</span>
                   </div>
                 </div>
               );
@@ -68,35 +69,36 @@ function LibraryDock({ project, sim, onAddNode, onQuickInput, onSelect, selectio
 }
 
 const ROADMAP = {
-  library: { title: "Element library", tag: "Module 2", icon: "library",
-    desc: "A searchable catalogue of characterised elements — sensors, regulators, reporters — with parameter ranges, response curves and provenance.",
-    items: ["Per-element response curves & operating ranges", "Filter by signal type / channel / chassis", "Verified provenance (curated separately)", "Drag a catalogued element onto the canvas"] },
-  runs: { title: "Run history", tag: "Module 2", icon: "runs",
-    desc: "Every simulation is archived as a reproducible run — topology, parameters and inputs — so you can compare configurations side by side.",
-    items: ["Timeline of saved runs", "A/B overlay of two runs on one chart", "Parameter diff between runs", "Export a run bundle as JSON"] },
-  reverse: { title: "Reverse design", tag: "Future", icon: "reverse",
-    desc: "Specify a target behaviour — a desired output profile or truth table — and let the solver propose element choices and edge weights.",
-    items: ["Target curve / truth-table editor", "Weight & threshold optimisation", "Element recommendation shortlist", "Sensitivity & dose–response analysis"] },
+  library: { titleKey: "libraryPageTitle", tagKey: "roadmapLibraryTag", icon: "library",
+    descKey: "roadmapLibraryDesc",
+    itemKeys: ["roadmapLibraryItem1", "roadmapLibraryItem2", "roadmapLibraryItem3", "roadmapLibraryItem4"] },
+  runs: { titleKey: "runsPageTitle", tagKey: "roadmapRunsTag", icon: "runs",
+    descKey: "roadmapRunsDesc",
+    itemKeys: ["roadmapRunsItem1", "roadmapRunsItem2", "roadmapRunsItem3", "roadmapRunsItem4"] },
+  reverse: { titleKey: "reversePageTitle", tagKey: "roadmapReverseTag", icon: "reverse",
+    descKey: "roadmapReverseDesc",
+    itemKeys: ["roadmapReverseItem1", "roadmapReverseItem2", "roadmapReverseItem3", "roadmapReverseItem4"] },
 };
 
 function PlaceholderPage({ page, onBack }) {
   const r = ROADMAP[page];
+  const tr = (key) => window.I18n?.t(key) || key;
   if (!r) return null;
   return (
     <div className="placeholder">
       <div className="placeholder-card">
         <div className="placeholder-top">
           <span className="placeholder-ic"><Icon name={r.icon} size={20} /></span>
-          <span className="badge b-soon">{r.tag}</span>
+          <span className="badge b-soon">{tr(r.tagKey)}</span>
         </div>
-        <h1>{r.title}</h1>
-        <p className="placeholder-desc">{r.desc}</p>
+        <h1>{tr(r.titleKey)}</h1>
+        <p className="placeholder-desc">{tr(r.descKey)}</p>
         <ul className="placeholder-list">
-          {r.items.map((it, i) => (
-            <li key={i}><Icon name="check" size={15} sw={2.2} /> {it}</li>
+          {r.itemKeys.map((it, i) => (
+            <li key={i}><Icon name="check" size={15} sw={2.2} /> {tr(it)}</li>
           ))}
         </ul>
-        <button className="btn" onClick={onBack}><Icon name="chevronLeft" size={14} /> Back to workbench</button>
+        <button className="btn" onClick={onBack}><Icon name="chevronLeft" size={14} /> {tr("roadmapBack")}</button>
       </div>
     </div>
   );

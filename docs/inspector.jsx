@@ -77,6 +77,7 @@ function ChannelChecks({ project, selected, onToggle }) {
 
 /* =============== context bodies ================================= */
 function NodeBody({ project, sim, nd, onParam }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const meta = window.Model.KIND_META[nd.kind];
   const schema = window.Model.PARAM_SCHEMA[nd.kind] || [];
   const tint = window.Model.nodeTint(nd);
@@ -92,16 +93,16 @@ function NodeBody({ project, sim, nd, onParam }) {
       </div>
       {act != null && (
         <div className="insp-readout">
-          <span className="eyebrow">Activation</span>
+          <span className="eyebrow">{tr("activation")}</span>
           <span className="num insp-readout-val">{act.toFixed(3)}</span>
           <div className="insp-readout-bar"><div style={{ width: (act * 100) + "%", background: tint }}></div></div>
         </div>
       )}
       {nd.kind === "sensor" && sim && (
-        <div className="insp-mini">Hill signal <b className="num">{(sim.signals[nd.id] ?? 0).toFixed(3)}</b>
-          <span className="badge b-demo">demo</span></div>
+        <div className="insp-mini">{tr("hillSignal")} <b className="num">{(sim.signals[nd.id] ?? 0).toFixed(3)}</b>
+          <span className="badge b-demo">{tr("demo")}</span></div>
       )}
-      <Section label="Parameters" icon="inspector">
+      <Section label={tr("parameters")} icon="inspector">
         {schema.map((p) => (
           <ParamRow key={p.key} label={p.label} value={nd[p.key]} min={p.min} max={p.max} step={p.step}
             unit={p.unit} accent={tint} onChange={(v) => onParam(nd.id, p.key, v)} />
@@ -112,6 +113,7 @@ function NodeBody({ project, sim, nd, onParam }) {
 }
 
 function EdgeBody({ project, e, onEdgeParam, onEdgeDelete }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const from = project.nodes.find((n) => n.id === e.from);
   const to = project.nodes.find((n) => n.id === e.to);
   return (
@@ -120,30 +122,31 @@ function EdgeBody({ project, e, onEdgeParam, onEdgeDelete }) {
         <span className="insp-id-glyph" style={{ background: e.sign < 0 ? "var(--c-inhibit)" : "var(--accent)" }}>
           <Icon name={e.sign < 0 ? "inhibit" : "activate"} size={17} /></span>
         <div className="insp-id-tx">
-          <div className="insp-id-title">Edge weight</div>
+          <div className="insp-id-title">{tr("edgeWeight")}</div>
           <div className="insp-id-sub">{from.label} → {to.label}</div>
         </div>
       </div>
-      <Section label="Connection" icon="connect">
-        <ParamRow label="Strength w" value={e.w} min={-2.5} max={2.5} step={0.05} unit=""
+      <Section label={tr("connection")} icon="connect">
+        <ParamRow label={tr("strength")} value={e.w} min={-2.5} max={2.5} step={0.05} unit=""
           onChange={(v) => onEdgeParam(e.id, "w", v)} />
         <div className="seg">
           <button className={"seg-b" + (e.sign >= 0 ? " on" : "")} onClick={() => onEdgeParam(e.id, "sign", 1)}>
-            <Icon name="activate" size={13} /> Activate</button>
+            <Icon name="activate" size={13} /> {tr("activateAction")}</button>
           <button className={"seg-b" + (e.sign < 0 ? " on" : "")} onClick={() => onEdgeParam(e.id, "sign", -1)}>
-            <Icon name="inhibit" size={13} /> Inhibit</button>
+            <Icon name="inhibit" size={13} /> {tr("inhibitAction")}</button>
         </div>
       </Section>
-      <Section label="Label">
-        <input className="insp-text" placeholder="optional edge label" value={e.label || ""}
+      <Section label={tr("label")}>
+        <input className="insp-text" placeholder={tr("optionalEdgeLabel")} value={e.label || ""}
           onChange={(ev) => onEdgeParam(e.id, "label", ev.target.value)} />
       </Section>
-      <button className="btn insp-danger" onClick={() => onEdgeDelete(e.id)}><Icon name="trash" size={13} /> Remove edge</button>
+      <button className="btn insp-danger" onClick={() => onEdgeDelete(e.id)}><Icon name="trash" size={13} /> {tr("removeEdge")}</button>
     </>
   );
 }
 
 function ReadoutBody({ project, ro, onReadout }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const meta = window.Model.READOUT_META[ro.type];
   const cfg = ro.config;
   const chanOpts = window.Model.channelsOf(project).map((c) => ({ value: c.id, label: c.label }));
@@ -154,24 +157,24 @@ function ReadoutBody({ project, ro, onReadout }) {
         <span className="insp-id-glyph" style={{ background: "var(--accent)" }}><Icon name={meta.icon} size={17} /></span>
         <div className="insp-id-tx">
           <div className="insp-id-title">{ro.title}</div>
-          <div className="insp-id-sub">Readout · {meta.label}
-            <span className={"badge " + (ro.source === "user" ? "b-user" : "b-example")} style={{ marginLeft: 6 }}>{ro.source === "user" ? "user" : "preset"}</span></div>
+          <div className="insp-id-sub">{tr("readout")} · {meta.label}
+            <span className={"badge " + (ro.source === "user" ? "b-user" : "b-example")} style={{ marginLeft: 6 }}>{ro.source === "user" ? tr("user") : tr("presetBadge")}</span></div>
         </div>
       </div>
-      <Section label="Title">
+      <Section label={tr("title")}>
         <input className="insp-text" value={ro.title} onChange={(e) => onReadout(ro.id, { title: e.target.value })} />
       </Section>
 
       {(ro.type === "timeseries" || ro.type === "channels") && (
-        <Section label="Channels" icon="channel">
+        <Section label={tr("channels")} icon="channel">
           <ChannelChecks project={project} selected={cfg.channels || []}
             onToggle={(id) => { const s = new Set(cfg.channels || []); s.has(id) ? s.delete(id) : s.add(id); setCfg({ channels: [...s] }); }} />
         </Section>
       )}
 
       {ro.type === "classification" && (
-        <Section label="Decision rule" icon="readoutDecision">
-          <div className="param"><div className="param-top"><label className="param-label">Channel</label></div>
+        <Section label={tr("decisionRule")} icon="readoutDecision">
+          <div className="param"><div className="param-top"><label className="param-label">{tr("channel")}</label></div>
             <Select value={cfg.channel} options={chanOpts} onChange={(v) => setCfg({ channel: v })} /></div>
           {(cfg.thresholds || []).map((th, i) => (
             <ParamRow key={i} label={"θ" + (i + 1) + " · " + (cfg.labels[i + 1]?.name || "")} value={th} min={0.02} max={0.98} step={0.01}
@@ -187,37 +190,38 @@ function ReadoutBody({ project, ro, onReadout }) {
               </div>
             ))}
           </div>
-          <Switch label="Memory latch" sub="Hold top state once crossed, until reset"
+          <Switch label={tr("memoryLatch")} sub={tr("latchSub")}
             checked={!!cfg.latch} onChange={(v) => setCfg({ latch: v })} />
         </Section>
       )}
 
       {ro.type === "dose" && (
-        <Section label="Sweep" icon="readoutDose">
-          <div className="param"><div className="param-top"><label className="param-label">Input (swept)</label></div>
+        <Section label={tr("sweep")} icon="readoutDose">
+          <div className="param"><div className="param-top"><label className="param-label">{tr("inputSwept")}</label></div>
             <Select value={cfg.input} options={project.nodes.filter((n) => n.kind === "sensor").map((n) => ({ value: n.id, label: n.label }))} onChange={(v) => setCfg({ input: v })} /></div>
-          <div className="param"><div className="param-top"><label className="param-label">Output (read)</label></div>
+          <div className="param"><div className="param-top"><label className="param-label">{tr("outputRead")}</label></div>
             <Select value={cfg.output} options={chanOpts} onChange={(v) => setCfg({ output: v })} /></div>
         </Section>
       )}
 
       {ro.type === "truth" && (
-        <Section label="Configuration" icon="readoutTruth">
-          <div className="param-label" style={{ marginBottom: 6 }}>Inputs (max 3)</div>
+        <Section label={tr("config")} icon="readoutTruth">
+          <div className="param-label" style={{ marginBottom: 6 }}>{tr("inputsMax3")}</div>
           <ChannelChecks project={{ nodes: project.nodes.filter((n) => n.kind === "sensor"), edges: [] }} selected={cfg.inputs || []}
             onToggle={(id) => { let s = cfg.inputs || []; s = s.includes(id) ? s.filter((x) => x !== id) : (s.length < 3 ? [...s, id] : s); setCfg({ inputs: s }); }} />
-          <div className="param" style={{ marginTop: 10 }}><div className="param-top"><label className="param-label">Output channel</label></div>
+          <div className="param" style={{ marginTop: 10 }}><div className="param-top"><label className="param-label">{tr("outputChannel")}</label></div>
             <Select value={cfg.channel} options={chanOpts} onChange={(v) => setCfg({ channel: v })} /></div>
-          <ParamRow label="ON threshold" value={cfg.threshold} min={0.05} max={0.95} step={0.01} unit="" onChange={(v) => setCfg({ threshold: v })} />
+          <ParamRow label={tr("onThreshold")} value={cfg.threshold} min={0.05} max={0.95} step={0.01} unit="" onChange={(v) => setCfg({ threshold: v })} />
         </Section>
       )}
 
-      {ro.type === "heatmap" && <p className="insp-note">Shows steady-state activation of every node, grouped by layer. No configuration.</p>}
+      {ro.type === "heatmap" && <p className="insp-note">{tr("heatmapNote")}</p>}
     </>
   );
 }
 
 function ModelBody({ project, onModelParam, onSelectReadout }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const p = project.params;
   const isUser = project.meta.kind === "user";
   return (
@@ -227,15 +231,15 @@ function ModelBody({ project, onModelParam, onSelectReadout }) {
         <div className="insp-id-tx">
           <div className="insp-id-title">{project.meta.name}</div>
           <div className="insp-id-sub">{project.meta.domain}
-            <span className={"badge " + (isUser ? "b-user" : "b-example")} style={{ marginLeft: 6 }}>{isUser ? "user-defined" : "example"}</span></div>
+            <span className={"badge " + (isUser ? "b-user" : "b-example")} style={{ marginLeft: 6 }}>{isUser ? tr("userDefined") : tr("example")}</span></div>
         </div>
       </div>
       <p className="insp-note">{project.meta.note}</p>
-      <Section label="Model dynamics" icon="settings">
-        <ParamRow label="Run length" value={p.tMax} min={6} max={72} step={1} unit="h" onChange={(v) => onModelParam("tMax", v)} />
-        <ParamRow label="Integration τ" value={p.tau} min={0.5} max={12} step={0.1} unit="h" onChange={(v) => onModelParam("tau", v)} />
+      <Section label={tr("modelDynamics")} icon="settings">
+        <ParamRow label={tr("runLength")} value={p.tMax} min={6} max={72} step={1} unit="h" onChange={(v) => onModelParam("tMax", v)} />
+        <ParamRow label={tr("integrationTau")} value={p.tau} min={0.5} max={12} step={0.1} unit="h" onChange={(v) => onModelParam("tau", v)} />
       </Section>
-      <Section label="Readouts" icon="readoutSeries" right={<span className="badge b-demo">{project.readouts.length}</span>}>
+      <Section label={tr("readouts")} icon="readoutSeries" right={<span className="badge b-demo">{project.readouts.length}</span>}>
         <div className="insp-rolist">
           {project.readouts.map((ro) => {
             const meta = window.Model.READOUT_META[ro.type];
@@ -244,7 +248,7 @@ function ModelBody({ project, onModelParam, onSelectReadout }) {
                 <Icon name={meta.icon} size={15} />
                 <span className="insp-roitem-tx"><span className="insp-roitem-name">{ro.title}</span>
                   <span className="insp-roitem-type">{meta.label}</span></span>
-                {ro.source === "user" && <span className="badge b-user">user</span>}
+                {ro.source === "user" && <span className="badge b-user">{tr("user")}</span>}
                 <Icon name="chevronRight" size={13} />
               </button>
             );

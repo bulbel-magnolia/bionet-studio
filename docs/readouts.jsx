@@ -6,7 +6,8 @@
    =================================================================== */
 
 function chanLabel(project, id) {
-  if (id === "score") return project.aggregate?.label || "Aggregate output";
+  const tr = (key) => window.I18n?.t(key) || key;
+  if (id === "score") return project.aggregate?.label || tr("outputsWord");
   const n = project.nodes.find((x) => x.id === id);
   return n ? n.label : id;
 }
@@ -18,6 +19,7 @@ function chanColor(project, id) {
 
 /* ---------- time series / channels ----------------------------- */
 function RO_TimeSeries({ project, sim, config, yUnit }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const chans = (config.channels && config.channels.length ? config.channels : ["score"]);
   const series = chans.map((id) => ({
     id, color: chanColor(project, id), label: chanLabel(project, id),
@@ -33,7 +35,7 @@ function RO_TimeSeries({ project, sim, config, yUnit }) {
       </div>
       <div className="ro-chartwrap">
         <LineChart series={series} tMax={sim.tMax} yMax={1} height={186}
-          yUnit={yUnit || "a.u."} xUnit="h" ariaLabel="time series" />
+          yUnit={yUnit || "a.u."} xUnit="h" ariaLabel={tr("timeSeries")} />
       </div>
     </div>
   );
@@ -41,6 +43,7 @@ function RO_TimeSeries({ project, sim, config, yUnit }) {
 
 /* ---------- decision rule (classification) --------------------- */
 function RO_Classification({ project, sim, config, latched, onResetLatch }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const value = window.Sim.channelFinal(sim, config.channel);
   const peak = Math.max(...(window.Sim.channelSeries(sim, config.channel) || [0]));
   const top = window.Sim.topIndex(config);
@@ -57,30 +60,30 @@ function RO_Classification({ project, sim, config, latched, onResetLatch }) {
     <div className="ro-split">
       <div className="ro-verdict">
         <div className="ro-vhead">
-          <span className="eyebrow">{chanLabel(project, config.channel)} → state</span>
-          <span className="badge b-demo">illustrative</span>
+          <span className="eyebrow">{chanLabel(project, config.channel)} → {tr("toState")}</span>
+          <span className="badge b-demo">{tr("illustrativeBadge")}</span>
         </div>
         <div className="ro-vstate">
           <span className="ro-vdot" style={{ background: cur.color }}></span>
           <span className="ro-vlabel" style={{ color: cur.color }}>{cur.label}</span>
-          {config.latch && latched && <span className="ro-vlock"><Icon name="lock" size={11} /> latched</span>}
+          {config.latch && latched && <span className="ro-vlock"><Icon name="lock" size={11} /> {tr("latched")}</span>}
         </div>
         <div className="ro-vgrid">
-          <div><span className="vg-k">value</span><span className="num vg-v">{value.toFixed(3)}</span></div>
-          <div><span className="vg-k">peak</span><span className="num vg-v">{peak.toFixed(3)}</span></div>
-          <div><span className="vg-k">thresholds</span><span className="num vg-v">{th.map((x) => x.toFixed(2)).join(" / ") || "—"}</span></div>
-          <div><span className="vg-k">latch</span><span className="num vg-v">{config.latch ? "on" : "off"}</span></div>
+          <div><span className="vg-k">{tr("value")}</span><span className="num vg-v">{value.toFixed(3)}</span></div>
+          <div><span className="vg-k">{tr("peak")}</span><span className="num vg-v">{peak.toFixed(3)}</span></div>
+          <div><span className="vg-k">{tr("thresholds")}</span><span className="num vg-v">{th.map((x) => x.toFixed(2)).join(" / ") || "—"}</span></div>
+          <div><span className="vg-k">{tr("latch")}</span><span className="num vg-v">{config.latch ? tr("on") : tr("off")}</span></div>
         </div>
         {sim.dominant && (
-          <div className="ro-reason">Driver: <b>{sim.dominant.label}</b> · signal <span className="num">{sim.dominant.signal.toFixed(2)}</span></div>
+          <div className="ro-reason">{tr("driver")}: <b>{sim.dominant.label}</b> · {tr("signal")} <span className="num">{sim.dominant.signal.toFixed(2)}</span></div>
         )}
         {config.latch && latched && (
-          <button className="btn ro-reset" onClick={onResetLatch}><Icon name="reset" size={13} /> Reset state</button>
+          <button className="btn ro-reset" onClick={onResetLatch}><Icon name="reset" size={13} /> {tr("resetState")}</button>
         )}
       </div>
       <div className="ro-chartwrap">
         <LineChart series={series} tMax={sim.tMax} yMax={1} height={186}
-          yUnit="a.u." xUnit="h" bands={bands} thresholds={thr} ariaLabel="decision rule" />
+          yUnit="a.u." xUnit="h" bands={bands} thresholds={thr} ariaLabel={tr("decisionRule")} />
       </div>
     </div>
   );
@@ -95,6 +98,7 @@ function bandTint(color) {
 
 /* ---------- layer activity heatmap ----------------------------- */
 function RO_Heatmap({ project, sim }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const order = ["sensor", "signal", "response", "reporter", "memory"];
   const cols = order.map((k) => ({ k, meta: window.Model.KIND_META[k], nodes: project.nodes.filter((n) => n.kind === k) }))
     .filter((c) => c.nodes.length);
@@ -117,25 +121,26 @@ function RO_Heatmap({ project, sim }) {
           </div>
         ))}
       </div>
-      <div className="ro-heatscale"><span>0.0</span><div className="ro-heatbar"></div><span>1.0 activation</span></div>
+      <div className="ro-heatscale"><span>0.0</span><div className="ro-heatbar"></div><span>1.0 {tr("activation")}</span></div>
     </div>
   );
 }
 
 /* ---------- dose–response -------------------------------------- */
 function RO_Dose({ project, config }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const dr = window.Sim.doseResponse(project, config.input, config.output);
   const series = [{ id: "dose", color: chanColor(project, config.output),
     label: chanLabel(project, config.output), data: dr.y }];
   return (
     <div className="ro-pane">
       <div className="ro-legend">
-        <span className="ro-leg">sweep <b>{dr.inputLabel}</b> → <b>{chanLabel(project, config.output)}</b> (steady state)</span>
-        <span className="badge b-demo">illustrative</span>
+        <span className="ro-leg">{tr("sweepWord")} <b>{dr.inputLabel}</b> → <b>{chanLabel(project, config.output)}</b> ({tr("steadyState")})</span>
+        <span className="badge b-demo">{tr("illustrativeBadge")}</span>
       </div>
       <div className="ro-chartwrap">
         <LineChart series={series} tMax={1.5} yMax={1} height={186}
-          yUnit="out" xUnit="in a.u." cursor={true} ariaLabel="dose response" />
+          yUnit={tr("out")} xUnit="in a.u." cursor={true} ariaLabel={window.Model.READOUT_META.dose.label} />
       </div>
     </div>
   );
@@ -143,18 +148,19 @@ function RO_Dose({ project, config }) {
 
 /* ---------- truth table ---------------------------------------- */
 function RO_Truth({ project, config }) {
+  const tr = (key) => window.I18n?.t(key) || key;
   const rows = window.Sim.truthTable(project, config.inputs, config.channel, config.threshold);
   const inLabels = config.inputs.map((id) => chanLabel(project, id));
   return (
     <div className="ro-pane">
       <div className="ro-legend">
-        <span className="ro-leg">inputs at low(0.05)/high(1.0) · output <b>{chanLabel(project, config.channel)}</b> ≥ {config.threshold}</span>
-        <span className="badge b-demo">illustrative</span>
+        <span className="ro-leg">{tr("lowHighNote")} · {tr("outputChannel")} <b>{chanLabel(project, config.channel)}</b> ≥ {config.threshold}</span>
+        <span className="badge b-demo">{tr("illustrativeBadge")}</span>
       </div>
       <div className="ro-truthwrap">
         <table className="ro-truth">
           <thead>
-            <tr>{inLabels.map((l, i) => <th key={i}>{l}</th>)}<th>value</th><th>out</th></tr>
+            <tr>{inLabels.map((l, i) => <th key={i}>{l}</th>)}<th>{tr("value")}</th><th>{tr("out")}</th></tr>
           </thead>
           <tbody>
             {rows.map((r, i) => (
@@ -189,6 +195,7 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
   const readouts = project.readouts || [];
   const [active, setActive] = React.useState(0);
   const [addOpen, setAddOpen] = React.useState(false);
+  const tr = (key) => window.I18n?.t(key) || key;
   React.useEffect(() => { setActive((a) => Math.min(a, Math.max(0, readouts.length - 1))); }, [project.meta.id, readouts.length]);
 
   if (collapsed) {
@@ -196,8 +203,8 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
       <div className="readout collapsed">
         <button className="readout-handle" onClick={onToggleCollapse}>
           <Icon name="chevronUp" size={13} />
-          <span className="eyebrow">Readouts</span>
-          <span className="readout-handle-meta mono">{readouts.length} outputs</span>
+          <span className="eyebrow">{tr("readouts")}</span>
+          <span className="readout-handle-meta mono">{readouts.length} {tr("outputCount")}</span>
         </button>
       </div>
     );
@@ -218,16 +225,16 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
               <button key={ro.id} className={"rtab" + (i === active ? " on" : "")} onClick={() => setActive(i)}>
                 <Icon name={meta.icon} size={14} />
                 <span className="rtab-t">{ro.title}</span>
-                {ro.pinned && <span className="rtab-pin" title="Pinned"><Icon name="pin" size={10} /></span>}
-                {ro.source === "user" && <span className="rtab-src" title="user-defined"></span>}
+                {ro.pinned && <span className="rtab-pin" title={tr("pinned")}><Icon name="pin" size={10} /></span>}
+                {ro.source === "user" && <span className="rtab-src" title={tr("userDefined")}></span>}
               </button>
             );
           })}
           <div className="rtab-add-wrap" onMouseLeave={() => setAddOpen(false)}>
-            <button className="rtab-add" title="Add readout" onClick={() => setAddOpen((o) => !o)}><Icon name="add" size={14} /></button>
+            <button className="rtab-add" title={tr("addReadout")} onClick={() => setAddOpen((o) => !o)}><Icon name="add" size={14} /></button>
             {addOpen && (
               <div className="rtab-menu">
-                <div className="rtab-menu-h eyebrow">Add readout</div>
+                <div className="rtab-menu-h eyebrow">{tr("addReadout")}</div>
                 {window.Model.READOUT_TYPES.map((t) => (
                   <button key={t.type} className="rtab-menu-i" onClick={() => { onAddReadout(t.type); setAddOpen(false); setActive(readouts.length); }}>
                     <Icon name={t.icon} size={15} />
@@ -239,16 +246,16 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
           </div>
         </div>
         <div className="readout-bar-r">
-          {r && <span className={"badge " + (r.source === "user" ? "b-user" : "b-demo")}>{r.source === "user" ? "user" : "illustrative"}</span>}
-          {r && <button className="iconbtn" title="Configure module" onClick={() => onConfigure(r.id)}><Icon name="settings" size={15} /></button>}
-          {r && <button className={"iconbtn" + (r.pinned ? " on" : "")} title={r.pinned ? "Unpin" : "Pin module"} onClick={() => onTogglePin(r.id)}><Icon name="pin" size={15} /></button>}
-          {r && readouts.length > 1 && <button className="iconbtn" title="Remove module" onClick={() => onRemoveReadout(r.id)}><Icon name="close" size={15} /></button>}
+          {r && <span className={"badge " + (r.source === "user" ? "b-user" : "b-demo")}>{r.source === "user" ? tr("user") : tr("illustrativeBadge")}</span>}
+          {r && <button className="iconbtn" title={tr("configureModule")} onClick={() => onConfigure(r.id)}><Icon name="settings" size={15} /></button>}
+          {r && <button className={"iconbtn" + (r.pinned ? " on" : "")} title={r.pinned ? tr("unpinModule") : tr("pinModule")} onClick={() => onTogglePin(r.id)}><Icon name="pin" size={15} /></button>}
+          {r && readouts.length > 1 && <button className="iconbtn" title={tr("removeModule")} onClick={() => onRemoveReadout(r.id)}><Icon name="close" size={15} /></button>}
           <span className="canvas-tools-sep"></span>
-          <button className="iconbtn" title="Collapse" onClick={onToggleCollapse}><Icon name="chevronDown" size={15} /></button>
+          <button className="iconbtn" title={tr("collapse")} onClick={onToggleCollapse}><Icon name="chevronDown" size={15} /></button>
         </div>
       </div>
       <div className="readout-body">
-        {r ? renderReadout(r, props) : <div className="ro-empty">No readouts. Use + to add one.</div>}
+        {r ? renderReadout(r, props) : <div className="ro-empty">{tr("noReadouts")}</div>}
       </div>
     </div>
   );
