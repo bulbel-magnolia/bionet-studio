@@ -1,0 +1,231 @@
+/* ===================================================================
+   bionet-studio — design tokens  (DARK-FIRST)
+   Primary direction: dark, control-room scientific software.
+   Light is the secondary theme via [data-theme="light"].
+   =================================================================== */
+
+/* ---- DARK (primary, default) ----------------------------------- */
+:root {
+  /* neutrals — canvas is the DEEPEST layer, docks are lifted above it */
+  --bg-app:        #0B0F0E;
+  --bg-canvas:     #070A09;
+  --grid-minor:    #121A17;
+  --grid-major:    #1B2421;
+  --bg-panel:      #141C1A;
+  --bg-panel-2:    #101715;
+  --bg-sunken:     #0A0E0D;
+  --bg-hover:      #1D2724;
+  --bg-active:     #25352F;
+  --border:        #283430;
+  --border-strong: #3D4A44;
+  --border-faint:  #1C2522;
+  --panel-hi:      rgba(255,255,255,.035);
+
+  --text-1: #EAF0EC;
+  --text-2: #A6B2AB;
+  --text-3: #707C75;
+  --text-inv: #070A09;
+
+  /* accent (overridable by tweak) */
+  --accent:        #3E8EF7;
+  --accent-weak:   #142436;
+  --accent-strong: #6BA9F9;
+
+  /* node-kind colours */
+  --k-sensor:   #4F9DF5;
+  --k-signal:   #B08CF0;
+  --k-response: #3FCB84;
+  --k-reporter: #E6B24A;
+  --k-memory:   #E8709E;
+  /* legacy aliases */
+  --node-sensor: var(--k-sensor); --node-signal: var(--k-signal);
+  --node-response: var(--k-response); --node-reporter: var(--k-reporter);
+  --node-memory: var(--k-memory);
+
+  /* channels (generic) */
+  --ch-score: #6E8BF0;
+  --ch-1: #34C6B0;
+  --ch-2: #A78BF0;
+  --ch-3: #E6B24A;
+  --rep-z: var(--ch-score);
+
+  /* reporters (water-quality example) */
+  --rep-gfp:   #44D26A;
+  --rep-yfp:   #ECC94B;
+  --rep-dsred: #F0675F;
+
+  /* status / decision */
+  --st-ok:   #35C26E;
+  --st-warn: #E6B33C;
+  --st-crit: #F0625F;
+  --st-idle: #6B7772;
+  /* semantic aliases */
+  --c-signal: var(--k-sensor);
+  --c-growth: var(--st-ok);
+  --c-inhibit: #E68A4A;
+  --c-danger: var(--st-crit);
+  --c-warn: var(--st-warn);
+  --c-safe: var(--st-ok);
+
+  /* status surfaces */
+  --ok-bg:   #11271C;  --ok-bd:   #235C3D;
+  --warn-bg: #2A2410;  --warn-bd: #5E4F1E;
+  --crit-bg: #2C1413;  --crit-bd: #5E2B29;
+  --idle-bg: #161D1B;  --idle-bd: #2C3733;
+  /* legacy surface aliases */
+  --safe-bg: var(--ok-bg); --safe-bd: var(--ok-bd);
+
+  /* type */
+  --font-ui:   "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+
+  /* radius */
+  --r-sm: 4px; --r-md: 6px; --r-lg: 9px; --r-xl: 13px;
+
+  /* elevation */
+  --sh-1: 0 1px 2px rgba(0,0,0,.4);
+  --sh-2: 0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.40);
+  --sh-pop: 0 14px 38px rgba(0,0,0,.6), 0 2px 8px rgba(0,0,0,.5);
+  --sh-dock: 0 0 0 1px var(--border), 0 0 24px rgba(0,0,0,.35);
+  --ring-sel: 0 0 0 2px var(--accent), 0 0 0 5px var(--accent-weak);
+  --glow-line: drop-shadow(0 0 4px currentColor);
+
+  /* density */
+  --u: 4px;
+  --rail-w: 56px;
+  --dock-l: 264px;
+  --dock-r: 328px;
+  --dock-b: 286px;
+  --bar-h: 52px;
+}
+
+/* ---- LIGHT (secondary) ----------------------------------------- */
+:root[data-theme="light"] {
+  --bg-app:        #EEF1EE;
+  --bg-canvas:     #F7F8F6;
+  --grid-minor:    #E4E8E4;
+  --grid-major:    #D8DDD8;
+  --bg-panel:      #FFFFFF;
+  --bg-panel-2:    #FAFBFA;
+  --bg-sunken:     #EFF2EF;
+  --bg-hover:      #F0F3F0;
+  --bg-active:     #E7ECE8;
+  --border:        #D6DCD7;
+  --border-strong: #B6BEB8;
+  --border-faint:  #E6EAE6;
+
+  --text-1: #16221C;
+  --text-2: #51605A;
+  --text-3: #889089;
+  --text-inv: #F4F7F4;
+
+  --accent:        #2563CD;
+  --accent-weak:   #E7F0FC;
+  --accent-strong: #1E52B0;
+
+  --k-sensor:   #2D6FE0;
+  --k-signal:   #7A4FD0;
+  --k-response: #1F9D62;
+  --k-reporter: #C98A1A;
+  --k-memory:   #C0497E;
+
+  --ch-score: #4A5FCC;
+  --ch-1: #149384;
+  --ch-2: #6B4FD0;
+  --ch-3: #C98A1A;
+
+  --rep-gfp:   #1F9D52;
+  --rep-yfp:   #C9A81A;
+  --rep-dsred: #D6453E;
+
+  --st-ok:   #1F9D62;
+  --st-warn: #C98A1A;
+  --st-crit: #D23B3B;
+  --st-idle: #889089;
+  --c-inhibit: #D9761C;
+
+  --ok-bg:   #E7F4EC;  --ok-bd:   #B5DFC4;
+  --warn-bg: #FBF1DC;  --warn-bd: #ECD49A;
+  --crit-bg: #FBE6E5;  --crit-bd: #EDB3B0;
+  --idle-bg: #EEF1EE;  --idle-bd: #D6DCD7;
+
+  --sh-1: 0 1px 2px rgba(20,32,26,.06);
+  --sh-2: 0 1px 2px rgba(20,32,26,.06), 0 4px 14px rgba(20,32,26,.07);
+  --sh-pop: 0 8px 28px rgba(20,32,26,.16), 0 2px 6px rgba(20,32,26,.10);
+  --sh-dock: 0 0 0 1px var(--border);
+  --ring-sel: 0 0 0 2px var(--accent), 0 0 0 5px var(--accent-weak);
+  --panel-hi: rgba(255,255,255,.6);
+  --glow-line: none;
+}
+
+/* ================================================================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-app);
+  color: var(--text-1);
+  font-size: 13px; line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+button { font-family: inherit; cursor: pointer; }
+::selection { background: var(--accent-weak); }
+
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 6px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--text-3); background-clip: content-box; }
+*::-webkit-scrollbar-track { background: transparent; }
+
+/* ---- App grid --------------------------------------------------- */
+#root { height: 100vh; }
+.app {
+  height: 100vh; display: grid;
+  grid-template-columns: var(--rail-w) var(--dock-l) 1fr var(--dock-r);
+  grid-template-rows: var(--bar-h) 1fr;
+  grid-template-areas:
+    "rail topbar topbar topbar"
+    "rail libdock canvas inspector";
+  background: var(--bg-app);
+}
+.app.lib-collapsed  { grid-template-columns: var(--rail-w) 0 1fr var(--dock-r); }
+.app.insp-collapsed { grid-template-columns: var(--rail-w) var(--dock-l) 1fr 0; }
+.app.lib-collapsed.insp-collapsed { grid-template-columns: var(--rail-w) 0 1fr 0; }
+
+/* ---- shared atoms ---------------------------------------------- */
+.eyebrow {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--text-3); white-space: nowrap;
+}
+.divider { height: 1px; background: var(--border-faint); }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px;
+  border-radius: 5px; font-size: 10px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; border: 1px solid var(--border); color: var(--text-3);
+}
+.badge.b-demo { background: var(--bg-sunken); color: var(--text-3); }
+.badge.b-example { background: var(--accent-weak); color: var(--accent); border-color: transparent; }
+.badge.b-user { background: var(--ok-bg); color: var(--st-ok); border-color: var(--ok-bd); }
+.badge.b-soon { background: var(--warn-bg); color: var(--st-warn); border-color: var(--warn-bd); }
+.dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+.iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--r-md);
+  border: 1px solid transparent; background: transparent; color: var(--text-2);
+}
+.iconbtn:hover { background: var(--bg-hover); color: var(--text-1); }
+.iconbtn.on { background: var(--accent-weak); color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px;
+  border-radius: var(--r-md); font-size: 12.5px; font-weight: 550; white-space: nowrap;
+  border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-1);
+}
+.btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.btn.primary { background: var(--accent); border-color: var(--accent-strong); color: #fff; box-shadow: var(--sh-1); }
+.btn.primary:hover { background: var(--accent-strong); }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover { background: var(--bg-hover); }
+.btn svg { display: block; }

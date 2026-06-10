@@ -15,6 +15,7 @@ node_modules/
 demos/_backup_pre_v3/
 demos/_screenshots/
 demos/_screenshots_v3/
+*-check*.png
 
 # OS junk
 .DS_Store
