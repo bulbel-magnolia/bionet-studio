@@ -30,8 +30,25 @@ function App() {
   const [view, setView] = useState({ z: 1, x: 60, y: 30 });
   const [latched, setLatched] = useState({});
   const [dirty, setDirty] = useState(false);
+  const [snapshots, setSnapshots] = useState({ A: null, B: null });
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [toast, setToast] = useState(null); // { text, ts }
+  const [runs, setRuns] = useState(() => (window.Runs ? window.Runs.list() : []));
+  const [onboardStep, setOnboardStep] = useState(() => {
+    try { return localStorage.getItem("bionet.onboarded") === "1" ? -1 : 0; }
+    catch (err) { return 0; }
+  });
   const fileRef = useRef(null);
+  const history = useRef({ past: [], future: [] });
+  const [histTick, setHistTick] = useState(0);
+  const HIST_LIMIT = 30;
   const tr = (key) => window.I18n?.t(key) || key;
+
+  const showToast = useCallback((text) => {
+    const ts = Date.now();
+    setToast({ text, ts });
+    setTimeout(() => setToast((cur) => (cur && cur.ts === ts ? null : cur)), 1800);
+  }, []);
 
   const switchLang = useCallback(() => {
     const next = window.I18n.nextLang();
@@ -81,7 +98,50 @@ function App() {
 
   // ---- mutators -------------------------------------------------
   const markUser = (p) => p.meta.kind === "example" ? { ...p, meta: { ...p.meta, kind: "user" } } : p;
-  const edit = useCallback((fn) => { setProject((p) => markUser(fn(p))); setDirty(true); }, []);
+  const edit = useCallback((fn) => {
+    setProject((p) => {
+      const next = markUser(fn(p));
+      if (next === p) return p;
+      history.current.past.push(p);
+      if (history.current.past.length > HIST_LIMIT) history.current.past.shift();
+      history.current.future = [];
+      return next;
+    });
+    setHistTick((n) => n + 1);
+    setDirty(true);
+  }, []);
+
+  const undo = useCallback(() => {
+    const h = history.current;
+    if (!h.past.length) return;
+    setProject((cur) => {
+      const prev = h.past.pop();
+      h.future.push(cur);
+      if (h.future.length > HIST_LIMIT) h.future.shift();
+      return prev;
+    });
+    setHistTick((n) => n + 1);
+    setDirty(true);
+  }, []);
+
+  const redo = useCallback(() => {
+    const h = history.current;
+    if (!h.future.length) return;
+    setProject((cur) => {
+      const next = h.future.pop();
+      h.past.push(cur);
+      if (h.past.length > HIST_LIMIT) h.past.shift();
+      return next;
+    });
+    setHistTick((n) => n + 1);
+    setDirty(true);
+  }, []);
+
+  const resetHistory = () => { history.current = { past: [], future: [] }; setHistTick((n) => n + 1); };
+  // canUndo/canRedo recompute each render thanks to histTick.
+  void histTick;
+  const canUndo = history.current.past.length > 0;
+  const canRedo = history.current.future.length > 0;
 
   const setNodeParam = useCallback((id, key, val) =>
     edit((p) => ({ ...p, nodes: p.nodes.map((n) => n.id === id ? { ...n, [key]: val } : n) })), [edit]);
@@ -127,7 +187,11 @@ function App() {
     const nid = "n_" + (_uid++);
     edit((p) => {
       const src = p.nodes.find((n) => n.id === id); if (!src) return p;
-      return { ...p, nodes: [...p.nodes, { ...src, id: nid, x: src.x + 30, y: src.y + 38, label: src.label + " " + (window.I18n?.t("copiedNode") || "copy") }] };
+      const layout = window._canvasLayout;
+      const offset = layout ? layout.NODE_W + 16 : 200;
+      const raw = { x: src.x + offset, y: src.y + 12 };
+      const pos = layout ? layout.clampNodePos(raw.x, raw.y) : raw;
+      return { ...p, nodes: [...p.nodes, { ...src, id: nid, x: pos.x, y: pos.y, label: src.label + " " + (window.I18n?.t("copiedNode") || "copy") }] };
     });
     setSelection({ type: "node", id: nid });
   }, [edit]);
@@ -135,7 +199,9 @@ function App() {
   const addNode = useCallback((kind) => {
     const meta = window.Model.KIND_META[kind];
     const id = kind + "_" + (_uid++);
-    const node = { id, kind, label: meta.label, sub: lang === "zh" ? "新建" : "new", x: 410 + Math.random() * 70, y: 70 + Math.random() * 60 };
+    const layout = window._canvasLayout;
+    const slot = layout ? layout.pickLayerSlot(kind, project.nodes) : { x: 410, y: 70 };
+    const node = { id, kind, label: meta.label, sub: lang === "zh" ? "新建" : "new", x: slot.x, y: slot.y };
     (window.Model.PARAM_SCHEMA[kind] || []).forEach((pp) => {
       node[pp.key] = pp.key === "C" ? 0.4 : pp.key === "Km" ? 0.5 : pp.key === "n" ? 2 : pp.key === "weight" ? 0.3
         : pp.key === "gain" ? 3.2 : pp.key === "tauMature" ? 4 : pp.key === "gainOut" ? 1 : 0;
@@ -143,18 +209,22 @@ function App() {
     if (kind === "reporter") node.tint = "var(--ch-1)";
     edit((p) => ({ ...p, nodes: [...p.nodes, node] }));
     setSelection({ type: "node", id });
-  }, [edit]);
+  }, [edit, project.nodes, lang]);
 
   const pickExample = (id) => {
     const ex = window.Model.EXAMPLES.find((e) => e.id === id);
     if (!ex) return;
     setProject(ex.make());
     setSelection(null); setLatched({}); setDirty(false);
+    setSnapshots({ A: null, B: null });
+    resetHistory();
   };
   const newProject = () => {
     const p = window.Model.defaultProject();
     p.meta = { id: "untitled", name: tr("untitledNetwork"), kind: "user", domain: tr("custom"), note: lang === "zh" ? "从默认骨架创建的空白网络。" : "A blank network from the default backbone." };
     setProject(p); setSelection(null); setLatched({}); setDirty(false);
+    setSnapshots({ A: null, B: null });
+    resetHistory();
   };
 
   // ---- import / export ------------------------------------------
@@ -178,26 +248,188 @@ function App() {
           if (!pr.meta) pr.meta = { id: "import", name: tr("importedNetwork"), kind: "user", domain: tr("custom"), note: "" };
           pr.meta.kind = "user";
           setProject(pr); setSelection(null); setLatched({}); setDirty(false);
+          setSnapshots({ A: null, B: null });
+          resetHistory();
         }
       } catch (err) { /* ignore */ }
     };
     rd.readAsText(f); e.target.value = "";
   };
 
-  const onRun = () => setProject((p) => ({ ...p }));
+  const onRun = useCallback(() => {
+    setProject((p) => ({ ...p }));
+    setLatched({});
+    if (window.Runs) {
+      const run = window.Runs.record(project, sim);
+      setRuns(window.Runs.list());
+      showToast(tr("runRecorded"));
+    } else {
+      showToast(tr("runFlash"));
+    }
+  }, [project, sim, showToast]);
   const doExportClean = () => { doExport(); setDirty(false); };
+
+  // ---- A/B snapshots --------------------------------------------
+  const saveSnapshot = useCallback((slot) => {
+    const snap = {
+      label: slot === "A" ? "A" : "B",
+      ts: Date.now(),
+      project: window.Model.clone(project),
+      sim: JSON.parse(JSON.stringify(sim)),
+    };
+    setSnapshots((s) => ({ ...s, [slot]: snap }));
+    showToast(tr(slot === "A" ? "snapshotSavedA" : "snapshotSavedB"));
+  }, [project, sim, showToast]);
+  const clearSnapshot = useCallback((slot) => {
+    setSnapshots((s) => ({ ...s, [slot]: null }));
+  }, []);
+  const openCompare = useCallback(() => setCompareOpen(true), []);
+  const closeCompare = useCallback(() => setCompareOpen(false), []);
+
+  // ---- Run history ----------------------------------------------
+  const refreshRuns = useCallback(() => { if (window.Runs) setRuns(window.Runs.list()); }, []);
+  const deleteRun = useCallback((id) => { if (window.Runs) { window.Runs.remove(id); refreshRuns(); } }, [refreshRuns]);
+  const clearRuns = useCallback(() => { if (window.Runs) { window.Runs.clear(); refreshRuns(); showToast(tr("runsCleared")); } }, [refreshRuns, showToast]);
+  const updateRunNote = useCallback((id, note) => { if (window.Runs) { window.Runs.update(id, { note }); refreshRuns(); } }, [refreshRuns]);
+  const restoreRun = useCallback((id) => {
+    if (!window.Runs) return;
+    const run = window.Runs.list().find((r) => r.id === id);
+    if (!run) return;
+    setProject(window.Model.clone(run.project));
+    setSelection(null);
+    setLatched({});
+    setDirty(false);
+    setSnapshots({ A: null, B: null });
+    resetHistory();
+    setPage("workbench");
+    showToast(tr("runRestored"));
+  }, [showToast]);
+  const exportRuns = useCallback((ids) => {
+    if (!window.Runs) return;
+    const data = window.Runs.exportRuns(ids);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    a.download = "bionet-runs-" + stamp + ".json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }, []);
+  const importRunsFile = useCallback((file) => {
+    if (!file || !window.Runs) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const j = JSON.parse(rd.result);
+        const added = window.Runs.importRuns(j);
+        refreshRuns();
+        showToast(added ? `${tr("runsImported")} (${added})` : tr("runsImportedNone"));
+      } catch (err) {
+        showToast(tr("runsImportFailed"));
+      }
+    };
+    rd.readAsText(file);
+  }, [refreshRuns, showToast]);
+
+  // ---- view helpers ---------------------------------------------
+  const fitView = useCallback(() => {
+    const layout = window._canvasLayout;
+    const W = layout?.WORLD_W ?? 1040, H = layout?.WORLD_H ?? 480;
+    const el = document.querySelector(".canvas");
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const z = Math.min((r.width - 56) / W, (r.height - 56) / H, 1.4);
+    setView({ z, x: (r.width - W * z) / 2, y: (r.height - H * z) / 2 });
+  }, []);
+  const focusNode = useCallback((id) => {
+    const layout = window._canvasLayout;
+    if (!layout) return;
+    const nd = project.nodes.find((n) => n.id === id);
+    if (!nd) return;
+    const el = document.querySelector(".canvas");
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const z = view.z;
+    const cx = nd.x + layout.NODE_W / 2;
+    const cy = nd.y + layout.NODE_H / 2;
+    setView({ z, x: r.width / 2 - cx * z, y: r.height / 2 - cy * z });
+  }, [project.nodes, view.z]);
+
+  // ---- keyboard shortcuts ---------------------------------------
+  useEffect(() => {
+    const isTyping = (target) => {
+      if (!target) return false;
+      const tag = target.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+    };
+    const handler = (e) => {
+      if (isTyping(e.target)) return;
+      const meta = e.ctrlKey || e.metaKey;
+      // Undo / Redo
+      if (meta && !e.shiftKey && (e.key === "z" || e.key === "Z")) { e.preventDefault(); undo(); return; }
+      if (meta && (e.key === "y" || e.key === "Y" || ((e.key === "z" || e.key === "Z") && e.shiftKey))) {
+        e.preventDefault(); redo(); return;
+      }
+      // Duplicate
+      if (meta && (e.key === "d" || e.key === "D")) {
+        if (selection?.type === "node") { e.preventDefault(); duplicateNode(selection.id); }
+        return;
+      }
+      // Delete
+      if (!meta && (e.key === "Delete" || e.key === "Backspace")) {
+        if (selection?.type === "node") { e.preventDefault(); deleteNode(selection.id); }
+        else if (selection?.type === "edge") { e.preventDefault(); deleteEdge(selection.id); }
+        return;
+      }
+      // Escape: clear selection / close compare / dismiss onboarding
+      if (e.key === "Escape") {
+        if (compareOpen) { setCompareOpen(false); return; }
+        if (onboardStep >= 0) { setOnboardStep(-1); try { localStorage.setItem("bionet.onboarded", "1"); } catch (err) {} return; }
+        if (selection) setSelection(null);
+        return;
+      }
+      // F: fit view, or focus selected node
+      if (!meta && (e.key === "f" || e.key === "F")) {
+        e.preventDefault();
+        if (selection?.type === "node") focusNode(selection.id);
+        else fitView();
+        return;
+      }
+      // I: toggle edge sign
+      if (!meta && (e.key === "i" || e.key === "I")) {
+        if (selection?.type === "edge") {
+          const ed = project.edges.find((x) => x.id === selection.id);
+          if (ed) { e.preventDefault(); setEdgeParam(selection.id, "sign", ed.sign < 0 ? 1 : -1); }
+        }
+        return;
+      }
+      // +/-: zoom
+      if (!meta && (e.key === "+" || e.key === "=")) {
+        e.preventDefault(); setView((v) => ({ ...v, z: Math.min(2.2, v.z * 1.1) })); return;
+      }
+      if (!meta && (e.key === "-" || e.key === "_")) {
+        e.preventDefault(); setView((v) => ({ ...v, z: Math.max(0.45, v.z * 0.9) })); return;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [selection, undo, redo, duplicateNode, deleteNode, deleteEdge, project.edges, setEdgeParam, focusNode, fitView, compareOpen, onboardStep]);
 
   const appCls = "app" + (libOpen && page === "workbench" ? "" : " lib-collapsed") + (inspOpen && page === "workbench" ? "" : " insp-collapsed");
 
   return (
     <div className={appCls + (t.showGrid ? "" : " no-grid")}>
-      <LeftRail page={page} onNav={setPage} theme={t.dark ? "dark" : "light"} onTheme={() => setTweak("dark", !t.dark)} />
+      <LeftRail page={page} onNav={setPage} theme={t.dark ? "dark" : "light"} onTheme={() => setTweak("dark", !t.dark)} runsCount={runs.length} />
       <TopBar project={project} verdict={verdict} examples={window.Model.EXAMPLES} dirty={dirty}
         onPickExample={pickExample} onNewProject={newProject}
         onImport={doImport} onExport={doExportClean} onRun={onRun}
         lang={lang} onLang={switchLang}
         libOpen={libOpen} inspOpen={inspOpen}
-        onToggleLib={() => setLibOpen((o) => !o)} onToggleInsp={() => setInspOpen((o) => !o)} />
+        onToggleLib={() => setLibOpen((o) => !o)} onToggleInsp={() => setInspOpen((o) => !o)}
+        canUndo={canUndo} canRedo={canRedo}
+        onUndo={undo} onRedo={redo}
+        snapshots={snapshots} onSaveSnapshot={saveSnapshot} onClearSnapshot={clearSnapshot}
+        onCompare={openCompare} />
 
       {page === "workbench" ? (
         <>
@@ -212,7 +444,8 @@ function App() {
             <ReadoutDock project={project} sim={sim} latched={latched}
               onResetLatch={resetLatch} onAddReadout={addReadout} onRemoveReadout={removeReadout}
               onConfigure={(id) => setSelection({ type: "readout", id })} onTogglePin={togglePin}
-              collapsed={!dockOpen} onToggleCollapse={() => setDockOpen((o) => !o)} />
+              collapsed={!dockOpen} onToggleCollapse={() => setDockOpen((o) => !o)}
+              verdict={verdict} />
           </main>
           {inspOpen && (
             <Inspector project={project} sim={sim} selection={selection}
@@ -221,12 +454,30 @@ function App() {
           )}
         </>
       ) : (
-        <main className="stage stage-page" style={{ gridArea: "libdock / libdock / inspector / inspector" }}>
-          <PlaceholderPage page={page} onBack={() => setPage("workbench")} />
+        <main className={"stage stage-page" + (page === "runs" ? " runs-mode" : "")} style={{ gridArea: "libdock / libdock / inspector / inspector" }}>
+          {page === "runs"
+            ? <RunsPage runs={runs} onBack={() => setPage("workbench")}
+                onDelete={deleteRun} onClearAll={clearRuns}
+                onRestore={restoreRun} onUpdateNote={updateRunNote}
+                onExport={exportRuns} onImportFile={importRunsFile} />
+            : <PlaceholderPage page={page} onBack={() => setPage("workbench")} />}
         </main>
       )}
 
       <input ref={fileRef} type="file" accept="application/json" style={{ display: "none" }} onChange={onFile} />
+
+      {compareOpen && (
+        <ComparePanel project={project} snapshots={snapshots}
+          onClose={closeCompare} onClearSnapshot={clearSnapshot} />
+      )}
+
+      {onboardStep >= 0 && (
+        <OnboardingOverlay step={onboardStep}
+          onNext={() => setOnboardStep((s) => s + 1)}
+          onDone={() => { setOnboardStep(-1); try { localStorage.setItem("bionet.onboarded", "1"); } catch (err) {} }} />
+      )}
+
+      {toast && <div className="toast">{toast.text}</div>}
 
       <TweaksPanel title={tr("settings")}>
         <TweakSection label={tr("theme")} />

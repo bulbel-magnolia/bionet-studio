@@ -20,7 +20,9 @@ function chanColor(project, id) {
 /* ---------- time series / channels ----------------------------- */
 function RO_TimeSeries({ project, sim, config, yUnit }) {
   const tr = (key) => window.I18n?.t(key) || key;
-  const chans = (config.channels && config.channels.length ? config.channels : ["score"]);
+  const userChans = config.channels || [];
+  const usedFallback = userChans.length === 0;
+  const chans = usedFallback ? ["score"] : userChans;
   const series = chans.map((id) => ({
     id, color: chanColor(project, id), label: chanLabel(project, id),
     data: window.Sim.channelSeries(sim, id) || [],
@@ -32,6 +34,7 @@ function RO_TimeSeries({ project, sim, config, yUnit }) {
           <span key={s.id} className="ro-leg"><span className="dot" style={{ background: s.color }}></span>{s.label}
             <b className="num">{(s.data[s.data.length - 1] ?? 0).toFixed(3)}</b></span>
         ))}
+        {usedFallback && <span className="ro-leg ro-leg-hint">{tr("channels")} ⌀ · {chanLabel(project, "score")}</span>}
       </div>
       <div className="ro-chartwrap">
         <LineChart series={series} tMax={sim.tMax} yMax={1} height={186}
@@ -140,7 +143,7 @@ function RO_Dose({ project, config }) {
       </div>
       <div className="ro-chartwrap">
         <LineChart series={series} tMax={1.5} yMax={1} height={186}
-          yUnit={tr("out")} xUnit="in a.u." cursor={true} ariaLabel={window.Model.READOUT_META.dose.label} />
+          yUnit={tr("out") + " (a.u.)"} xUnit="in (a.u.)" cursor={true} ariaLabel={window.Model.READOUT_META.dose.label} />
       </div>
     </div>
   );
@@ -191,7 +194,7 @@ function renderReadout(r, props) {
 
 /* ================= DOCK ========================================= */
 function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemoveReadout, onConfigure, onTogglePin,
-                       collapsed, onToggleCollapse }) {
+                       collapsed, onToggleCollapse, verdict }) {
   const readouts = project.readouts || [];
   const [active, setActive] = React.useState(0);
   const [addOpen, setAddOpen] = React.useState(false);
@@ -205,6 +208,12 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
           <Icon name="chevronUp" size={13} />
           <span className="eyebrow">{tr("readouts")}</span>
           <span className="readout-handle-meta mono">{readouts.length} {tr("outputCount")}</span>
+          {verdict && (
+            <span className="readout-handle-verdict" style={{ "--vc": verdict.color }}>
+              <span className="dot" style={{ background: verdict.color }}></span>
+              <span style={{ color: verdict.color }}>{verdict.label}</span>
+            </span>
+          )}
         </button>
       </div>
     );
@@ -219,6 +228,9 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
     <div className="readout">
       <div className="readout-bar">
         <div className="readout-tabs">
+          {readouts.length === 0 && (
+            <span className="readout-empty-hint">{tr("noReadouts")}</span>
+          )}
           {readouts.map((ro, i) => {
             const meta = window.Model.READOUT_META[ro.type];
             return (
@@ -230,10 +242,12 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
               </button>
             );
           })}
+        </div>
+        <div className="readout-bar-r">
           <div className="rtab-add-wrap" onMouseLeave={() => setAddOpen(false)}>
             <button className="rtab-add" title={tr("addReadout")} onClick={() => setAddOpen((o) => !o)}><Icon name="add" size={14} /></button>
             {addOpen && (
-              <div className="rtab-menu">
+              <div className="rtab-menu rtab-menu-right">
                 <div className="rtab-menu-h eyebrow">{tr("addReadout")}</div>
                 {window.Model.READOUT_TYPES.map((t) => (
                   <button key={t.type} className="rtab-menu-i" onClick={() => { onAddReadout(t.type); setAddOpen(false); setActive(readouts.length); }}>
@@ -244,8 +258,7 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
               </div>
             )}
           </div>
-        </div>
-        <div className="readout-bar-r">
+          <span className="canvas-tools-sep"></span>
           {r && <span className={"badge " + (r.source === "user" ? "b-user" : "b-demo")}>{r.source === "user" ? tr("user") : tr("illustrativeBadge")}</span>}
           {r && <button className="iconbtn" title={tr("configureModule")} onClick={() => onConfigure(r.id)}><Icon name="settings" size={15} /></button>}
           {r && <button className={"iconbtn" + (r.pinned ? " on" : "")} title={r.pinned ? tr("unpinModule") : tr("pinModule")} onClick={() => onTogglePin(r.id)}><Icon name="pin" size={15} /></button>}
@@ -255,7 +268,13 @@ function ReadoutDock({ project, sim, latched, onResetLatch, onAddReadout, onRemo
         </div>
       </div>
       <div className="readout-body">
-        {r ? renderReadout(r, props) : <div className="ro-empty">{tr("noReadouts")}</div>}
+        {r ? renderReadout(r, props) : (
+          <div className="ro-empty-state">
+            <Icon name="readoutSeries" size={28} />
+            <div className="ro-empty-state-t">{tr("noReadouts")}</div>
+            <div className="ro-empty-state-sub">{tr("addReadout")}</div>
+          </div>
+        )}
       </div>
     </div>
   );

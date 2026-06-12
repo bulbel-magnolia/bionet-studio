@@ -226,6 +226,9 @@ button { font-family: inherit; cursor: pointer; }
 .btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
 .btn.primary { background: var(--accent); border-color: var(--accent-strong); color: #fff; box-shadow: var(--sh-1); }
 .btn.primary:hover { background: var(--accent-strong); }
+.btn.primary:active { transform: scale(.97); }
+@keyframes btn-flash { 0% { box-shadow: 0 0 0 0 var(--accent), var(--sh-1); } 100% { box-shadow: 0 0 0 10px transparent, var(--sh-1); } }
+.btn.primary.flash { animation: btn-flash .55s ease-out; }
 .btn.ghost { background: transparent; border-color: transparent; }
 .btn.ghost:hover { background: var(--bg-hover); }
 .btn svg { display: block; }

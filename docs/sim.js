@@ -198,6 +198,55 @@
     return rows;
   }
 
+  // ---- comparison helpers ---------------------------------------
+  // time (in hours) at which channel first reaches frac*final; null if never.
+  function timeToFraction(sim, channelId, frac) {
+    const ser = channelSeries(sim, channelId);
+    if (!ser || !ser.length) return null;
+    const target = frac == null ? 0.5 : frac;
+    const finalV = ser[ser.length - 1];
+    if (!Number.isFinite(finalV) || finalV <= 1e-6) return null;
+    const t = sim.t || [];
+    for (let i = 0; i < ser.length; i++) {
+      if (ser[i] >= target * finalV) return t[i] ?? (i * (sim.tMax / (ser.length - 1)));
+    }
+    return null;
+  }
+  function channelPeak(sim, channelId) {
+    const ser = channelSeries(sim, channelId);
+    return ser && ser.length ? Math.max(...ser) : 0;
+  }
+  // Diff two projects by numeric node params, edge w/sign, and aggregate.
+  // Returns [{ kind, id, label, key, a, b }] sorted by |Δ| descending.
+  function projectDiff(A, B) {
+    const diffs = [];
+    if (!A || !B) return diffs;
+    A.nodes.forEach((na) => {
+      const nb = B.nodes.find((n) => n.id === na.id);
+      if (!nb) { diffs.push({ kind: "node-rm", id: na.id, label: na.label, key: "—", a: 1, b: 0 }); return; }
+      Object.keys(na).forEach((k) => {
+        if (typeof na[k] === "number" && typeof nb[k] === "number" && Math.abs(na[k] - nb[k]) > 1e-6) {
+          diffs.push({ kind: "node", id: na.id, label: na.label, key: k, a: na[k], b: nb[k] });
+        }
+      });
+    });
+    B.nodes.forEach((nb) => {
+      if (!A.nodes.find((n) => n.id === nb.id)) diffs.push({ kind: "node-add", id: nb.id, label: nb.label, key: "—", a: 0, b: 1 });
+    });
+    A.edges.forEach((ea) => {
+      const eb = B.edges.find((e) => e.id === ea.id);
+      if (!eb) { diffs.push({ kind: "edge-rm", id: ea.id, label: ea.from + "→" + ea.to, key: "—", a: 1, b: 0 }); return; }
+      if (Math.abs((ea.w || 0) - (eb.w || 0)) > 1e-6) diffs.push({ kind: "edge", id: ea.id, label: ea.from + "→" + ea.to, key: "w", a: ea.w, b: eb.w });
+      if ((ea.sign || 1) !== (eb.sign || 1)) diffs.push({ kind: "edge", id: ea.id, label: ea.from + "→" + ea.to, key: "sign", a: ea.sign, b: eb.sign });
+    });
+    B.edges.forEach((eb) => {
+      if (!A.edges.find((e) => e.id === eb.id)) diffs.push({ kind: "edge-add", id: eb.id, label: eb.from + "→" + eb.to, key: "—", a: 0, b: 1 });
+    });
+    diffs.sort((x, y) => Math.abs((y.b ?? 0) - (y.a ?? 0)) - Math.abs((x.b ?? 0) - (x.a ?? 0)));
+    return diffs;
+  }
+
   window.Sim = { run, computeSteady, hill, sigmoid, clamp01,
-    channelSeries, channelFinal, classify, crossedTop, topIndex, doseResponse, truthTable };
+    channelSeries, channelFinal, classify, crossedTop, topIndex, doseResponse, truthTable,
+    timeToFraction, channelPeak, projectDiff };
 })();

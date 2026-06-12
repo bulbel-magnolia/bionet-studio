@@ -15,6 +15,29 @@ const LAYER_BANDS = [
   { x: 788, w: 200, labelKey: "layerOutputs",    key: "reporter" },
 ];
 
+// clamp a node position into the world box (with a small margin)
+function clampNodePos(x, y) {
+  const PAD = 8;
+  return {
+    x: Math.max(PAD, Math.min(WORLD_W - NODE_W - PAD, x)),
+    y: Math.max(PAD, Math.min(WORLD_H - NODE_H - PAD, y)),
+  };
+}
+
+// expose a placement helper so app.jsx can drop new nodes onto the right band
+function pickLayerSlot(kind, existingNodes) {
+  const band = LAYER_BANDS.find((b) => b.key === kind) || LAYER_BANDS.find((b) => b.key === "response");
+  const cx = band.x + (band.w - NODE_W) / 2;
+  const ys = existingNodes.filter((n) => n.kind === kind).map((n) => n.y).sort((a, b) => a - b);
+  // try empty slots at y = 60, 140, 220, 300, 380
+  const slots = [60, 140, 220, 300, 380];
+  for (const y of slots) {
+    if (!ys.some((py) => Math.abs(py - y) < 50)) return clampNodePos(cx, y);
+  }
+  return clampNodePos(cx, 60 + (ys.length * 18) % (WORLD_H - 120));
+}
+Object.assign(window, { _canvasLayout: { clampNodePos, pickLayerSlot, NODE_W, NODE_H, WORLD_W, WORLD_H } });
+
 function portOut(nd) { return { x: nd.x + NODE_W, y: nd.y + NODE_H / 2 }; }
 function portIn(nd)  { return { x: nd.x,          y: nd.y + NODE_H / 2 }; }
 function edgePath(a, b) {
@@ -32,6 +55,8 @@ function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canT
   const hasIn = nd.kind !== "sensor";
   const hasOut = nd.kind !== "reporter";
   const mainVal = meta.main ? nd[meta.main.key] : null;
+  // flip the quick-action toolbar to the left edge if the node sits near the right wall
+  const actionsRight = nd.x > WORLD_W - NODE_W - 80;
   return (
     <div
       className={"node" + (selected ? " sel" : "") + (dim ? " dim" : "") + (isSource ? " src" : "") + (isTarget ? " tgt" : "")}
@@ -55,14 +80,16 @@ function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canT
           <span className="num node-act-val">{heat.toFixed(2)}</span>
         </div>
       </div>
-      {hasIn && <span className={"port port-in" + (connecting && canTarget ? " avail" : "") + (isTarget ? " hot" : "")}></span>}
+      {hasIn && <span className={"port port-in" + (connecting && canTarget ? " avail" : "") + (isTarget ? " hot" : "")}
+        onPointerDown={(e) => { e.stopPropagation(); onPortDown(e, nd.id, "in"); }}
+        title={tr("dragConnect")}></span>}
       {hasOut && <span className="port port-out"
-        onPointerDown={(e) => { e.stopPropagation(); onPortDown(e, nd.id); }}
+        onPointerDown={(e) => { e.stopPropagation(); onPortDown(e, nd.id, "out"); }}
         title={tr("dragConnect")}></span>}
       {selected && (
-        <div className="node-actions" onPointerDown={(e) => e.stopPropagation()}>
-          <button className="node-act-btn" title={tr("duplicate")} onClick={(e) => { e.stopPropagation(); onDuplicate(nd.id); }}><Icon name="copy" size={13} /></button>
-          <button className="node-act-btn danger" title={tr("delete")} onClick={(e) => { e.stopPropagation(); onDelete(nd.id); }}><Icon name="trash" size={13} /></button>
+        <div className={"node-actions" + (actionsRight ? " left" : "")} onPointerDown={(e) => e.stopPropagation()}>
+          <button className="node-act-btn" title={tr("duplicate") + " (Ctrl+D)"} onClick={(e) => { e.stopPropagation(); onDuplicate(nd.id); }}><Icon name="copy" size={13} /></button>
+          <button className="node-act-btn danger" title={tr("delete") + " (Del)"} onClick={(e) => { e.stopPropagation(); onDelete(nd.id); }}><Icon name="trash" size={13} /></button>
         </div>
       )}
     </div>
@@ -72,7 +99,7 @@ function NodeCard({ nd, act, selected, dim, connecting, isSource, isTarget, canT
 function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge, onDeleteNode, onDuplicateNode, view, setView }) {
   const wrapRef = React.useRef(null);
   const drag = React.useRef(null);
-  const [connect, setConnect] = React.useState(null); // { fromId, wx, wy, targetId }
+  const [connect, setConnect] = React.useState(null); // { fromId, dir, wx, wy, targetId, allowSameLayer }
   const tr = (key) => window.I18n?.t(key) || key;
 
   const nodeById = React.useMemo(() => {
@@ -85,12 +112,14 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
   };
 
   // candidate targets for an in-progress connection
-  const canConnect = (fromId, toId) => {
+  const canConnect = (fromId, toId, allowSameLayer) => {
     if (!fromId || fromId === toId) return false;
     const from = nodeById[fromId];
     const to = nodeById[toId];
     if (!from || !to || from.kind === "reporter" || to.kind === "sensor") return false;
-    if ((KIND_RANK[from.kind] ?? 0) >= (KIND_RANK[to.kind] ?? 0)) return false;
+    const rf = KIND_RANK[from.kind] ?? 0;
+    const rt = KIND_RANK[to.kind] ?? 0;
+    if (allowSameLayer ? rf > rt : rf >= rt) return false;
     return !model.edges.some((e) => e.from === fromId && e.to === toId);
   };
 
@@ -104,7 +133,7 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
     setView({ z: z2, x: mx - (mx - view.x) * k, y: my - (my - view.y) * k });
   }
   function onBgDown(e) {
-    drag.current = { mode: "pan", sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y };
+    drag.current = { mode: "pan", sx: e.clientX, sy: e.clientY, ox: view.x, oy: view.y, moved: false };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }
@@ -114,38 +143,50 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }
-  function onPortDown(e, id) {
+  function onPortDown(e, id, dir) {
     const w = toWorld(e.clientX, e.clientY);
-    drag.current = { mode: "connect", fromId: id };
-    setConnect({ fromId: id, wx: w.x, wy: w.y, targetId: null });
+    const direction = dir || "out";
+    drag.current = { mode: "connect", fromId: id, dir: direction };
+    setConnect({ fromId: id, dir: direction, wx: w.x, wy: w.y, targetId: null, allowSameLayer: !!e.altKey });
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   }
   function onMove(e) {
     const d = drag.current; if (!d) return;
     if (d.mode === "pan") {
-      setView({ ...view, x: d.ox + (e.clientX - d.sx), y: d.oy + (e.clientY - d.sy) });
+      const dx = e.clientX - d.sx, dy = e.clientY - d.sy;
+      if (!d.moved && Math.hypot(dx, dy) < 3) return;
+      d.moved = true;
+      setView({ ...view, x: d.ox + dx, y: d.oy + dy });
     } else if (d.mode === "node") {
       const dx = (e.clientX - d.sx) / view.z, dy = (e.clientY - d.sy) / view.z;
-      onNodeMove(d.id, Math.round(d.ox + dx), Math.round(d.oy + dy));
+      const p = clampNodePos(Math.round(d.ox + dx), Math.round(d.oy + dy));
+      onNodeMove(d.id, p.x, p.y);
     } else if (d.mode === "connect") {
       const w = toWorld(e.clientX, e.clientY);
-      // nearest valid input port
+      const allowSameLayer = !!e.altKey;
+      // nearest valid port: for an out-drag we look for inputs; for an in-drag we look for outputs.
       let target = null, best = SNAP;
       model.nodes.forEach((n) => {
-        if (!canConnect(d.fromId, n.id)) return;
-        const p = portIn(n);
+        const ok = d.dir === "in"
+          ? canConnect(n.id, d.fromId, allowSameLayer)
+          : canConnect(d.fromId, n.id, allowSameLayer);
+        if (!ok) return;
+        const p = d.dir === "in" ? portOut(n) : portIn(n);
         const dist = Math.hypot(p.x - w.x, p.y - w.y);
         if (dist < best) { best = dist; target = n.id; }
       });
-      setConnect({ fromId: d.fromId, wx: w.x, wy: w.y, targetId: target });
+      setConnect({ fromId: d.fromId, dir: d.dir, wx: w.x, wy: w.y, targetId: target, allowSameLayer });
     }
   }
   function onUp() {
     const d = drag.current;
     if (d && d.mode === "connect") {
       setConnect((c) => {
-        if (c && c.targetId) onAddEdge(c.fromId, c.targetId);
+        if (c && c.targetId) {
+          if (c.dir === "in") onAddEdge(c.targetId, c.fromId);
+          else onAddEdge(c.fromId, c.targetId);
+        }
         return null;
       });
     }
@@ -171,11 +212,22 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
   }, [selNode, model.edges]);
 
   const fromNode = connect ? nodeById[connect.fromId] : null;
-  const previewEnd = connect && connect.targetId ? portIn(nodeById[connect.targetId]) : (connect ? { x: connect.wx, y: connect.wy } : null);
+  // For an "out" drag the preview goes fromNode.out -> cursor (or target.in).
+  // For an "in" drag the preview goes target.out (or cursor) -> fromNode.in.
+  let previewA = null, previewB = null;
+  if (connect && fromNode) {
+    if (connect.dir === "in") {
+      previewA = connect.targetId ? portOut(nodeById[connect.targetId]) : { x: connect.wx, y: connect.wy };
+      previewB = portIn(fromNode);
+    } else {
+      previewA = portOut(fromNode);
+      previewB = connect.targetId ? portIn(nodeById[connect.targetId]) : { x: connect.wx, y: connect.wy };
+    }
+  }
 
   return (
     <div className={"canvas" + (connect ? " connecting" : "")} ref={wrapRef} onWheel={onWheel} onPointerDown={onBgDown}
-         onClick={() => onSelect(null)}>
+         onClick={(e) => { if (!drag.current?.moved) onSelect(null); }}>
       <div className="canvas-world" style={{ transform: `translate(${view.x}px,${view.y}px) scale(${view.z})` }}>
         <svg className="edges" width={WORLD_W} height={WORLD_H}>
           {LAYER_BANDS.map((b) => (
@@ -201,6 +253,7 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
             return (
               <g key={e.id} className="edge" onClick={(ev) => { ev.stopPropagation(); onSelect({ type: "edge", id: e.id }); }}>
                 <path d={p} fill="none" stroke="transparent" strokeWidth="12" style={{ cursor: "pointer" }} />
+                {isSel && <path d={p} fill="none" stroke="var(--accent)" strokeWidth={wpx + 6} opacity="0.18" />}
                 <path d={p} fill="none" stroke={stroke} strokeWidth={isSel ? wpx + 0.8 : wpx}
                       strokeDasharray={inhib ? "5 3" : "0"} opacity={dim ? 0.5 : 1}
                       markerEnd={inhib ? "" : (dim ? "url(#arw-dim)" : "url(#arw)")} />
@@ -211,7 +264,7 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
           })}
           {/* connection preview */}
           {connect && fromNode && (
-            <path d={edgePath(portOut(fromNode), previewEnd)} fill="none"
+            <path d={edgePath(previewA, previewB)} fill="none"
               stroke={connect.targetId ? "var(--accent)" : "var(--text-3)"} strokeWidth="2"
               strokeDasharray="6 4" className="edge-preview" />
           )}
@@ -223,24 +276,31 @@ function NetworkCanvas({ model, sim, selection, onSelect, onNodeMove, onAddEdge,
             connecting={connect != null}
             isSource={connect?.fromId === nd.id}
             isTarget={connect?.targetId === nd.id}
-            canTarget={connect ? canConnect(connect.fromId, nd.id) : false}
+            canTarget={connect
+              ? (connect.dir === "in"
+                  ? canConnect(nd.id, connect.fromId, connect.allowSameLayer)
+                  : canConnect(connect.fromId, nd.id, connect.allowSameLayer))
+              : false}
             onSelect={onSelect} onDragStart={onNodeDown} onPortDown={onPortDown}
             onDelete={onDeleteNode} onDuplicate={onDuplicateNode} />
         ))}
       </div>
 
       <div className="canvas-tools">
-        <button className="iconbtn" title={tr("zoomOut")} onClick={() => setView({ ...view, z: Math.max(0.45, view.z * 0.9) })}><Icon name="minus" size={15} /></button>
-        <span className="num canvas-zoom">{Math.round(view.z * 100)}%</span>
-        <button className="iconbtn" title={tr("zoomIn")} onClick={() => setView({ ...view, z: Math.min(2.2, view.z * 1.1) })}><Icon name="add" size={15} /></button>
+        <button className="iconbtn" title={tr("zoomOut") + " (-)"} onClick={() => setView({ ...view, z: Math.max(0.45, view.z * 0.9) })}><Icon name="minus" size={15} /></button>
+        <button className="num canvas-zoom" title="1:1" onClick={() => {
+          const r = wrapRef.current.getBoundingClientRect();
+          setView({ z: 1, x: (r.width - WORLD_W) / 2, y: (r.height - WORLD_H) / 2 });
+        }}>{Math.round(view.z * 100)}%</button>
+        <button className="iconbtn" title={tr("zoomIn") + " (+)"} onClick={() => setView({ ...view, z: Math.min(2.2, view.z * 1.1) })}><Icon name="add" size={15} /></button>
         <span className="canvas-tools-sep"></span>
-        <button className="iconbtn" title={tr("fitView")} onClick={fit}><Icon name="fit" size={15} /></button>
+        <button className="iconbtn" title={tr("fitView") + " (F)"} onClick={fit}><Icon name="fit" size={15} /></button>
       </div>
 
       <div className="canvas-legend">
         <span className="lg"><span className="lg-line" style={{ background: "var(--accent)" }}></span>{tr("activate")}</span>
         <span className="lg"><span className="lg-line dash" style={{ background: "var(--c-inhibit)" }}></span>{tr("inhibit")}</span>
-        <span className="lg lg-note">{tr("dragForward")}</span>
+        <span className="lg lg-note">{tr("dragForward")} · Alt {tr("sameLayerHint")}</span>
       </div>
     </div>
   );

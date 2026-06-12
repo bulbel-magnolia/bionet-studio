@@ -176,11 +176,16 @@ function ReadoutBody({ project, ro, onReadout }) {
         <Section label={tr("decisionRule")} icon="readoutDecision">
           <div className="param"><div className="param-top"><label className="param-label">{tr("channel")}</label></div>
             <Select value={cfg.channel} options={chanOpts} onChange={(v) => setCfg({ channel: v })} /></div>
-          {(cfg.thresholds || []).map((th, i) => (
-            <ParamRow key={i} label={"θ" + (i + 1) + " · " + (cfg.labels[i + 1]?.name || "")} value={th} min={0.02} max={0.98} step={0.01}
-              accent={cfg.labels[i + 1]?.color}
-              onChange={(v) => { const arr = [...cfg.thresholds]; arr[i] = v; setCfg({ thresholds: arr.sort((a, b) => a - b) }); }} />
-          ))}
+          {(cfg.thresholds || []).map((th, i) => {
+            const arr = cfg.thresholds || [];
+            const lo = i === 0 ? 0.02 : Math.min(0.98, (arr[i - 1] ?? 0.02) + 0.01);
+            const hi = i === arr.length - 1 ? 0.98 : Math.max(0.02, (arr[i + 1] ?? 0.98) - 0.01);
+            return (
+              <ParamRow key={i} label={"θ" + (i + 1) + " · " + (cfg.labels[i + 1]?.name || "")} value={th} min={lo} max={hi} step={0.01}
+                accent={cfg.labels[i + 1]?.color}
+                onChange={(v) => { const next = [...arr]; next[i] = Math.max(lo, Math.min(hi, v)); setCfg({ thresholds: next }); }} />
+            );
+          })}
           <div className="insp-labels">
             {cfg.labels.map((lab, i) => (
               <div key={i} className="insp-label-row">
