@@ -229,104 +229,32 @@ function App() {
 
   // ---- import / export ------------------------------------------
   const doExport = () => {
-  const data = {
-    format: "bionet-studio/v2",
-    note: "ILLUSTRATIVE DEMO — not calibrated",
-    project,
+    const blob = new Blob([JSON.stringify({ format: "bionet-studio/v2", note: "ILLUSTRATIVE DEMO — not calibrated", project }, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = (project.meta.name || "network").replace(/\s+/g, "-").toLowerCase() + ".json";
+    a.click(); URL.revokeObjectURL(a.href);
   };
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  });
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${(project.meta?.name || "network")
-    .replace(/\s+/g, "-")
-    .toLowerCase()}.json`;
-
-  a.click();
-  URL.revokeObjectURL(a.href);
-};
-
-const doImport = () => fileRef.current?.click();
-
-// 规范化导入项目：兼容旧版本 JSON，避免缺少字段导致页面失效
-const normalizeImportedProject = (rawProject) => {
-  const fallback = window.Model.defaultProject();
-  const project = window.Model.clone
-    ? window.Model.clone(rawProject)
-    : JSON.parse(JSON.stringify(rawProject));
-
-  // nodes / edges 是项目能否恢复的最低要求
-  if (!Array.isArray(project.nodes) || !Array.isArray(project.edges)) {
-    return null;
-  }
-
-  // 兼容旧版本缺失 meta 的情况
-  project.meta = {
-    ...fallback.meta,
-    id: project.meta?.id || "import",
-    name: project.meta?.name || tr("importedNetwork"),
-    kind: "user",
-    domain: project.meta?.domain || tr("custom"),
-    note: project.meta?.note || "",
+  const doImport = () => fileRef.current?.click();
+  const onFile = (e) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const j = JSON.parse(rd.result);
+        const pr = j.project || j.model;
+        if (pr?.nodes && pr?.edges) {
+          if (!pr.readouts) pr.readouts = window.Model.defaultProject().readouts;
+          if (!pr.aggregate) pr.aggregate = window.Model.defaultProject().aggregate;
+          if (!pr.meta) pr.meta = { id: "import", name: tr("importedNetwork"), kind: "user", domain: tr("custom"), note: "" };
+          pr.meta.kind = "user";
+          setProject(pr); setSelection(null); setLatched({}); setDirty(false);
+          setSnapshots({ A: null, B: null });
+          resetHistory();
+        }
+      } catch (err) { /* ignore */ }
+    };
+    rd.readAsText(f); e.target.value = "";
   };
-
-  // 兼容旧版本缺失 params 的情况
-  project.params = {
-    ...fallback.params,
-    ...(project.params || {}),
-  };
-
-  // 兼容旧版本缺失 readouts 的情况
-  project.readouts = Array.isArray(project.readouts)
-    ? project.readouts
-    : fallback.readouts;
-
-  // 兼容旧版本缺失 aggregate 的情况
-  project.aggregate = {
-    ...fallback.aggregate,
-    ...(project.aggregate || {}),
-  };
-
-  // 兼容旧版本缺失 channels 的情况
-  project.channels = {
-    ...(fallback.channels || {}),
-    ...(project.channels || {}),
-  };
-
-  return project;
-};
-
-const onFile = (e) => {
-  const f = e.target.files?.[0];
-  if (!f) return;
-
-  const rd = new FileReader();
-
-  rd.onload = () => {
-    try {
-      const data = JSON.parse(rd.result);
-      const rawProject = data.project || data.model || data;
-      const importedProject = normalizeImportedProject(rawProject);
-
-      if (!importedProject) return;
-
-      setProject(importedProject);
-      setSelection(null);
-      setLatched({});
-      setDirty(false);
-      setSnapshots({ A: null, B: null });
-      resetHistory();
-    } catch (err) {
-      console.warn("Failed to import project JSON:", err);
-    }
-  };
-
-  rd.readAsText(f);
-  e.target.value = "";
-};
 
   const onRun = useCallback(() => {
     setProject((p) => ({ ...p }));
