@@ -12,9 +12,9 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// sim.js 默认位于 docs/sim.js。
+// sim.js 默认位于 src/legacy/sim.js。
 // 如果你的 sim.js 路径不同，只需要修改这里。
-const simPath = path.resolve(__dirname, "../docs/sim.js");
+const simPath = path.resolve(__dirname, "../src/legacy/sim.js");
 
 // 创建浏览器环境模拟对象，因为 sim.js 通常通过 window.Sim 暴露 API。
 const sandbox = {

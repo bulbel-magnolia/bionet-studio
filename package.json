@@ -1,0 +1,26 @@
+{
+  "name": "bionet-studio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node tests/sim.basic.test.mjs && node tests/json.import-export.test.mjs",
+    "verify:static": "node scripts/verify-static-build.mjs",
+    "verify": "npm run typecheck && npm test && npm run build && npm run verify:static"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.5.0",
+    "vite": "^7.0.0"
+  }
+}

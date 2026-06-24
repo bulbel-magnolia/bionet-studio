@@ -18,7 +18,7 @@ GitHub Pages：
 
 更新日期：2026-06-11
 
-项目已经从早期规划推进到一个可交互的高保真前端原型。当前主入口在 `docs/`，并已通过 GitHub Pages 部署。
+项目已经从早期规划推进到一个可交互的高保真前端原型。当前源码入口在 `src/`，构建后的静态发布产物输出到 `docs/`，并已通过 GitHub Pages 部署。
 
 已完成：
 
@@ -31,49 +31,69 @@ GitHub Pages：
 7. 纯前端仿真内核：`sim.js` 与 UI 解耦，可在同一个项目模型上继续扩展反向设计或批量运行。
 8. JSON 导入 / 导出：项目可以保存为可复现的 JSON 文件。
 9. 公开仓库与 Pages 部署：仓库已公开，`main:/docs` 作为 GitHub Pages 发布源。
+10. Vite + React + TypeScript 工程壳：本地开发、类型检查、测试与静态构建已统一到 npm 脚本。
 
 仍是原型阶段：
 
 1. 元件库还是抽象元件目录，尚未接入经核实的 Registry / 文献参数。
 2. 示例数据和权重均为示意值，未用于真实湿实验标定。
-3. `docs/` 目前是静态原型结构，尚未迁移到生产级 Vite + React + TypeScript 工程。
-4. 反向设计、运行历史、真实元件推荐仍在路线图页中，尚未完整实现。
+3. 业务代码仍保留在 `src/legacy/` 的渐进迁移层，尚未完全改写为强类型组件与模块。
+4. 运行历史和 A/B 对比已有第一版，反向设计与真实元件推荐仍在路线图页中，尚未完整实现。
 
 ## 怎么本地运行
 
-推荐从 `docs/` 启动一个本地静态服务：
+首次拉取后安装依赖：
 
 ```powershell
-cd docs
-python -m http.server 5180 --bind 127.0.0.1
+npm install
 ```
 
-然后打开：
+开发预览：
 
-<http://127.0.0.1:5180/>
+```powershell
+npm run dev
+```
 
-也可以直接打开 `docs/index.html`，但本地服务更接近 GitHub Pages 的加载方式。
+生产构建：
+
+```powershell
+npm run build
+```
+
+提交前完整检查：
+
+```powershell
+npm run verify
+```
+
+该命令会依次运行类型检查、基础测试、生产构建和 `docs/` 静态发布目录自检。构建后 `docs/` 是纯静态 HTML / CSS / JS，可继续作为 GitHub Pages 或 iGEM 静态托管目录。
+
+GitHub Actions 模板见 `ci/github-actions-ci.example.yml`。启用时需要用具备 `workflow` 权限的 GitHub 账号复制到 `.github/workflows/ci.yml`。
 
 ## 目录结构
 
 ```text
 .
-├─ docs/                         GitHub Pages 当前展示入口
-│  ├─ index.html                 静态页面入口
-│  ├─ i18n.js                    中英文界面文案
-│  ├─ model.js                   项目模型、示例项目、元件与读出目录
-│  ├─ sim.js                     纯前端仿真内核
-│  ├─ canvas.jsx                 节点网络画布
-│  ├─ inspector.jsx              右侧上下文检查器
-│  ├─ readouts.jsx               底部读出面板
-│  ├─ library.jsx                左侧元件库与路线图页
-│  ├─ chrome.jsx                 顶栏与左侧导航
-│  ├─ tokens.css                 设计 token
-│  ├─ components.css             组件样式
-│  └─ vendor/                    React / ReactDOM / Babel 本地运行时
+├─ src/                          Vite 源码入口
+│  ├─ main.tsx                   React / Vite 启动入口
+│  └─ legacy/                    当前业务代码的渐进迁移层
+│     ├─ i18n.js                 中英文界面文案
+│     ├─ model.js                项目模型、示例项目、元件与读出目录
+│     ├─ sim.js                  纯前端仿真内核
+│     ├─ canvas.jsx              节点网络画布
+│     ├─ inspector.jsx           右侧上下文检查器
+│     ├─ readouts.jsx            底部读出面板
+│     ├─ library.jsx             左侧元件库与路线图页
+│     ├─ chrome.jsx              顶栏与左侧导航
+│     ├─ tokens.css              设计 token
+│     └─ components.css          组件样式
+├─ docs/                         Vite 构建后的 GitHub Pages 静态发布目录
+├─ public/                       构建时原样复制到 docs/ 的公开静态文件
+├─ tests/                        Node 基础回归测试
 ├─ 平台规划/                     产品规划与路线图活文档
 ├─ demos/                        早期单文件原型与共享内核
 ├─ 预览图/                       UI 方向图与阶段性设计稿
+├─ package.json                  开发、测试、构建脚本
 ├─ README.md                     当前文件
 └─ LICENSE                       MIT License
 ```
@@ -236,7 +256,7 @@ DDL：2026-06-18
 1. 稳定模型 schema：明确 project / node / edge / readout 的数据结构。
 2. 补测试：给 `sim.js` 增加基础数值回归测试，防止后续 UI 改动影响仿真结果。
 3. 元件库 schema：建立真实元件进入平台前必须携带的来源、置信度、待标定标记。
-4. 生产工程化：评估何时从静态原型迁移到 Vite + React + TypeScript。
+4. 生产工程化：在现有 Vite + React + TypeScript 工程壳上，逐步把 `src/legacy/` 拆成强类型模块。
 5. 功能扩展：运行历史、A/B 对比、反向设计、真实元件推荐。
 
 ## 数据纪律

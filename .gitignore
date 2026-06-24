@@ -11,6 +11,9 @@ __pycache__/
 # Node
 node_modules/
 
+# Local editor/project settings
+.idea/
+
 # demo build artefacts / history snapshots / screenshots (regenerable)
 demos/_backup_pre_v3/
 demos/_screenshots/
