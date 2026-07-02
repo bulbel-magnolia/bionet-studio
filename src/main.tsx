@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 
 import "./legacy/tokens.css";
 import "./legacy/components.css";
+import "./legacy/premium.css";
 
 declare global {
   interface Window {
