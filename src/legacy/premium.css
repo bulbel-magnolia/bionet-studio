@@ -1,0 +1,535 @@
+/* ===================================================================
+   bionet-studio — premium visual layer
+   Scientific Command Console: deep CAD canvas, layered glass panels,
+   signal-coloured modules, and instrument-like readouts.
+   =================================================================== */
+
+:root {
+  --bg-glass: rgba(20, 30, 27, .76);
+  --bg-glass-2: rgba(12, 18, 16, .86);
+  --panel-sheen: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.012) 42%, rgba(0,0,0,.08));
+  --panel-edge: rgba(255,255,255,.075);
+  --shadow-soft: 0 18px 54px rgba(0,0,0,.36), 0 2px 8px rgba(0,0,0,.32);
+  --shadow-glass: inset 0 1px 0 rgba(255,255,255,.06), 0 14px 38px rgba(0,0,0,.32);
+  --glow-accent: 0 0 24px color-mix(in srgb, var(--accent) 28%, transparent);
+  --glow-panel: 0 0 34px rgba(62,142,247,.08);
+  --ease-ui: cubic-bezier(.2,.8,.2,1);
+  --t-fast: 120ms;
+  --t-med: 180ms;
+}
+
+:root[data-theme="light"] {
+  --bg-glass: rgba(255,255,255,.78);
+  --bg-glass-2: rgba(250,252,250,.9);
+  --panel-sheen: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.24) 44%, rgba(0,0,0,.018));
+  --panel-edge: rgba(255,255,255,.84);
+  --shadow-soft: 0 18px 44px rgba(20,32,26,.12), 0 2px 8px rgba(20,32,26,.06);
+  --shadow-glass: inset 0 1px 0 rgba(255,255,255,.78), 0 12px 32px rgba(20,32,26,.10);
+  --glow-accent: 0 0 18px color-mix(in srgb, var(--accent) 14%, transparent);
+  --glow-panel: none;
+}
+
+/* ---- global depth ------------------------------------------------ */
+.app {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 48% 22%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 34%),
+    radial-gradient(circle at 82% 74%, rgba(63,203,132,.055), transparent 30%),
+    var(--bg-app);
+}
+
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.025), transparent 28%, transparent 72%, rgba(255,255,255,.018)),
+    radial-gradient(circle at center, transparent 42%, rgba(0,0,0,.24) 100%);
+}
+
+:root[data-theme="light"] .app::before {
+  background:
+    linear-gradient(120deg, rgba(255,255,255,.48), transparent 30%, transparent 70%, rgba(255,255,255,.28)),
+    radial-gradient(circle at center, transparent 58%, rgba(20,32,26,.08) 100%);
+}
+
+.rail,
+.topbar,
+.libdock,
+.inspector,
+.readout {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- elevated chrome -------------------------------------------- */
+.topbar,
+.rail,
+.libdock,
+.inspector,
+.readout {
+  background:
+    var(--panel-sheen),
+    color-mix(in srgb, var(--bg-panel) 88%, black);
+  box-shadow: inset 0 1px 0 var(--panel-edge);
+}
+
+.topbar {
+  border-bottom-color: color-mix(in srgb, var(--accent) 12%, var(--border));
+  box-shadow:
+    inset 0 1px 0 var(--panel-edge),
+    0 8px 30px rgba(0,0,0,.20);
+}
+
+.brand-name {
+  letter-spacing: -.025em;
+}
+
+.brand-name::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  vertical-align: 1px;
+}
+
+.project-btn,
+.filegroup,
+.abgroup,
+.canvas-tools,
+.canvas-legend {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.01)),
+    var(--bg-panel-2);
+  border-color: color-mix(in srgb, var(--border) 82%, white);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+.project-btn:hover,
+.filegroup:hover,
+.abgroup:hover,
+.canvas-tools:hover,
+.canvas-legend:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border-strong));
+}
+
+.rail {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), transparent 18%),
+    linear-gradient(90deg, rgba(255,255,255,.035), transparent),
+    color-mix(in srgb, var(--bg-panel) 78%, black);
+  box-shadow:
+    inset -1px 0 0 rgba(255,255,255,.035),
+    8px 0 28px rgba(0,0,0,.18);
+}
+
+.rail-logo {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,.34), transparent 28%),
+    linear-gradient(145deg, var(--accent-strong), var(--accent));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--accent) 36%, transparent),
+    0 10px 24px rgba(0,0,0,.34),
+    0 0 24px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.rail-btn,
+.iconbtn,
+.btn,
+.project-btn,
+.palette-row,
+.rtab,
+.ab-slot,
+.cmp-diff,
+.runs-table tr {
+  transition:
+    transform var(--t-fast) var(--ease-ui),
+    background var(--t-fast) var(--ease-ui),
+    border-color var(--t-fast) var(--ease-ui),
+    box-shadow var(--t-fast) var(--ease-ui),
+    color var(--t-fast) var(--ease-ui),
+    opacity var(--t-fast) var(--ease-ui);
+}
+
+.rail-btn:hover,
+.btn:hover,
+.project-btn:hover,
+.palette-row:hover,
+.ab-slot:hover {
+  transform: translateY(-1px);
+}
+
+.rail-btn.on,
+.rtab.on,
+.ab-slot.filled {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 0 18px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.abgroup::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  margin-right: 3px;
+}
+
+/* ---- scientific CAD canvas -------------------------------------- */
+.canvas {
+  background-color: var(--bg-canvas);
+  background-image:
+    radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 32%),
+    radial-gradient(circle at 78% 74%, rgba(63,203,132,.045), transparent 28%),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 22px 22px, 22px 22px, 110px 110px, 110px 110px;
+}
+
+.canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at center, transparent 48%, rgba(0,0,0,.28) 100%),
+    linear-gradient(180deg, rgba(255,255,255,.018), transparent 18%);
+  z-index: 1;
+}
+
+.canvas-world {
+  z-index: 2;
+}
+
+.no-grid .canvas {
+  background-image:
+    radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 32%),
+    radial-gradient(circle at 78% 74%, rgba(63,203,132,.045), transparent 28%);
+  background-size: 100% 100%, 100% 100%;
+}
+
+.layer-band {
+  fill: color-mix(in srgb, var(--bg-panel-2) 72%, transparent);
+  opacity: .34;
+  stroke: color-mix(in srgb, var(--accent) 10%, var(--border-faint));
+  stroke-width: 1;
+}
+
+.layer-label {
+  fill: color-mix(in srgb, var(--text-3) 82%, var(--accent));
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+
+/* ---- precision node modules ------------------------------------- */
+.node {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.014) 42%, rgba(0,0,0,.08)),
+    color-mix(in srgb, var(--bg-panel) 92%, black);
+  border-color: color-mix(in srgb, var(--border) 78%, white);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.055),
+    0 8px 22px rgba(0,0,0,.26);
+  backdrop-filter: blur(12px);
+  transition:
+    transform var(--t-med) var(--ease-ui),
+    box-shadow var(--t-med) var(--ease-ui),
+    border-color var(--t-med) var(--ease-ui),
+    opacity var(--t-med) var(--ease-ui);
+}
+
+.node::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 0%, color-mix(in srgb, var(--tint) 14%, transparent), transparent 42%);
+  opacity: .86;
+}
+
+.node:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--tint) 38%, var(--border-strong));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 12px 30px rgba(0,0,0,.34),
+    0 0 22px color-mix(in srgb, var(--tint) 16%, transparent);
+}
+
+.node.sel {
+  border-color: color-mix(in srgb, var(--tint) 76%, white);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--tint) 58%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--tint) 14%, transparent),
+    0 16px 40px rgba(0,0,0,.42),
+    0 0 34px color-mix(in srgb, var(--tint) 22%, transparent);
+}
+
+.node-stripe {
+  width: 3px;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--tint) 58%, transparent);
+}
+
+.node-glyph {
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,.24), transparent 28%),
+    color-mix(in srgb, var(--tint) 20%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 12px color-mix(in srgb, var(--tint) 18%, transparent);
+}
+
+.node-label {
+  letter-spacing: -.01em;
+}
+
+.node-act-track {
+  height: 5px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.24), rgba(255,255,255,.025)),
+    var(--bg-sunken);
+}
+
+.node-act-fill {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--tint) 70%, white), var(--tint));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--tint) 42%, transparent);
+}
+
+.port {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.08), rgba(0,0,0,.18)),
+    var(--bg-app);
+  border-color: color-mix(in srgb, var(--border-strong) 82%, white);
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.node:hover .port,
+.node.sel .port {
+  border-color: color-mix(in srgb, var(--tint) 72%, white);
+  box-shadow:
+    0 0 0 2px rgba(0,0,0,.24),
+    0 0 14px color-mix(in srgb, var(--tint) 32%, transparent);
+}
+
+.port-out:hover,
+.port.hot {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 22px color-mix(in srgb, var(--accent) 46%, transparent);
+}
+
+.edge-preview {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 38%, transparent));
+  animation: edge-dash 1.2s linear infinite;
+}
+
+@keyframes edge-dash {
+  to { stroke-dashoffset: -20; }
+}
+
+/* ---- element library and project menu --------------------------- */
+.palette-group {
+  padding: 6px;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-lg);
+  background: color-mix(in srgb, var(--bg-sunken) 36%, transparent);
+}
+
+.palette-row {
+  margin-bottom: 6px;
+}
+
+.palette-row:last-child {
+  margin-bottom: 0;
+}
+
+.project-menu,
+.rtab-menu,
+.ab-slot-menu,
+.cmp-panel,
+.onb-card,
+.placeholder-card,
+.runs-table-wrap {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.012) 42%, rgba(0,0,0,.08)),
+    var(--bg-panel);
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  box-shadow: var(--shadow-soft), var(--glow-panel);
+}
+
+.project-item:hover,
+.rtab-menu-i:hover,
+.ab-slot-menu-i:hover,
+.runs-table tr:hover {
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-hover));
+}
+
+/* ---- instrument readouts ---------------------------------------- */
+.readout {
+  border-top-color: color-mix(in srgb, var(--accent) 12%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.05),
+    0 -14px 34px rgba(0,0,0,.22);
+}
+
+.readout-bar {
+  background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.04));
+}
+
+.rtab.on {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, transparent), rgba(255,255,255,.015)),
+    var(--bg-active);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+
+.ro-verdict {
+  background:
+    radial-gradient(circle at 28% 22%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 38%);
+}
+
+.ro-vlabel {
+  font-size: 23px;
+  letter-spacing: -.025em;
+  text-shadow: 0 0 20px currentColor;
+}
+
+.ro-vgrid > div,
+.ro-cell,
+.verdict-grid > div,
+.verdict-reason,
+.ro-reason {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.045)),
+    var(--bg-sunken);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, white);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.ro-chartwrap {
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,.025), transparent 55%);
+  border-radius: var(--r-lg);
+}
+
+/* ---- inspector as control panel --------------------------------- */
+.insp-id {
+  padding: 10px;
+  margin: -4px -4px 12px;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-lg);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.035), rgba(0,0,0,.035)),
+    var(--bg-panel-2);
+}
+
+.insp-readout {
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 40%),
+    var(--bg-sunken);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.param-input,
+.insp-select select,
+.insp-text,
+.cmp-channel select {
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(255,255,255,.02)),
+    var(--bg-sunken);
+  border-color: color-mix(in srgb, var(--border) 84%, white);
+}
+
+.param-input:focus,
+.insp-select select:focus,
+.insp-text:focus,
+.cmp-channel select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.param-slider {
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.34);
+}
+
+.param-slider::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 3px rgba(0,0,0,.22),
+    0 0 14px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ---- compare overlay as flagship module ------------------------- */
+.cmp-backdrop {
+  background:
+    radial-gradient(circle at center, rgba(62,142,247,.12), transparent 42%),
+    rgba(5,8,7,.72);
+  backdrop-filter: blur(10px);
+}
+
+.cmp-panel {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 28px 90px rgba(0,0,0,.62),
+    0 0 46px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.cmp-head,
+.runs-table th {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(0,0,0,.02));
+}
+
+.cmp-title,
+.runs-head-title h1 {
+  letter-spacing: -.015em;
+}
+
+.cmp-metrics {
+  overflow: hidden;
+  border-radius: var(--r-md);
+}
+
+.cmp-metrics tr:hover td {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.cmp-diff {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.035)),
+    var(--bg-panel-2);
+}
+
+.toast {
+  backdrop-filter: blur(10px);
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  box-shadow:
+    var(--sh-pop),
+    0 0 24px color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
