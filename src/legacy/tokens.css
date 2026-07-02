@@ -49,7 +49,7 @@
   --ch-3: #E6B24A;
   --rep-z: var(--ch-score);
 
-  /* reporters (water-quality example) */
+  /* reporter presets */
   --rep-gfp:   #44D26A;
   --rep-yfp:   #ECC94B;
   --rep-dsred: #F0675F;
