@@ -1,6 +1,6 @@
 /* ===================================================================
    bionet-studio — model.js  (GENERAL synthetic-biology network platform)
-   The platform is domain-agnostic. Domain specifics (water quality,
+   The platform is domain-agnostic. Domain specifics (domain examples,
    logic gates, …) live inside individual EXAMPLE PROJECTS, never in the
    core UI. All example values are ILLUSTRATIVE / DEMO / to-be-calibrated.
    No real Registry IDs or literature parameters are invented.
@@ -153,30 +153,31 @@
     };
   }
 
-  /* --- 2. domain example: water quality monitor ------------------ */
-  function waterQuality() {
+  /* --- 2. domain example: licorice quality ------------------- */
+  function licoriceQuality() {
     const bb = backbone({
-      in_a: { label: pick("重金属", "Heavy metal"), sub: pick("污染物 A", "Pollutant A") },
-      in_b: { label: pick("有机毒物", "Organic toxin"), sub: pick("污染物 B", "Pollutant B") },
-      in_c: { label: pick("营养盐负荷", "Nutrient load"), sub: pick("污染物 C", "Pollutant C") },
-      out_1: { label: "GFP", sub: pick("绿色", "green") },
-      out_2: { label: "YFP", sub: pick("黄色", "yellow") },
-      out_3: { label: "DsRed", sub: pick("红色", "red") },
-    }, ["var(--rep-gfp)", "var(--rep-yfp)", "var(--rep-dsred)"]);
+      in_a: { label: pick("三萜皂苷信号", "Triterpenoid saponin signal"), sub: pick("甘草酸相关 · 示例", "glycyrrhizin-related · demo") },
+      in_b: { label: pick("黄酮类信号", "Flavonoid signal"), sub: pick("甘草苷/异甘草素相关 · 示例", "liquiritin / isoliquiritigenin-related · demo") },
+      in_c: { label: pick("酚酸类信号", "Phenolic-acid signal"), sub: pick("香豆酸等相关 · 示例", "coumaric-acid-related · demo") },
+      out_1: { label: pick("质量指数通道", "Quality-index channel"), sub: pick("报告器", "reporter") },
+      out_2: { label: pick("成分平衡通道", "Profile-balance channel"), sub: pick("报告器", "reporter") },
+      out_3: { label: pick("复核提示通道", "Review-hint channel"), sub: pick("报告器", "reporter") },
+    }, CH);
     return {
-      meta: { id: "water", name: pick("水质监测示例", "Water quality monitor"), kind: "example", domain: pick("环境应用", "Environmental"),
-        note: pick("示例应用：根据三类分析物估计污染风险。", "Example application: contamination risk from three analytes.") },
+      meta: { id: "licorice", name: pick("甘草质量检测示例", "Licorice quality example"), kind: "example", domain: pick("领域示例", "Domain example"),
+        note: pick("示例应用：把三类归一化成分信号整合为一个甘草质量指数。", "Example application: integrate three normalized phytochemical signals into a licorice quality index.") },
       ...bb,
-      aggregate: { label: pick("风险分数", "Risk score"), mode: "weightedSensors", unit: "a.u." },
+      aggregate: { label: pick("甘草质量指数", "Licorice quality index"), mode: "outputs", channels: ["out_1", "out_2", "out_3"], method: "weighted",
+        weights: { out_1: 0.45, out_2: 0.35, out_3: 0.20 }, unit: "a.u." },
       params: { tMax: 24, tau: 4.0 },
       readouts: [
-        RO("classification", pick("风险状态", "Risk state"), { channel: "score",
-          thresholds: [0.30, 0.70],
-          labels: [ { name: pick("安全", "SAFE"), color: "var(--st-ok)" }, { name: pick("预警", "WARN"), color: "var(--st-warn)" }, { name: pick("严重", "CRIT"), color: "var(--st-crit)" } ],
-          latch: true }),
-        RO("timeseries", pick("风险分数 Z(t)", "Risk score Z(t)"), { channels: ["score"] }),
-        RO("channels", pick("荧光输出", "Fluorescence"), { channels: ["out_1", "out_2", "out_3"] }),
-        RO("dose", pick("剂量响应", "Dose\u2013response"), { input: "in_a", output: "score" }),
+        RO("classification", pick("质量等级", "Quality class"), { channel: "score",
+          thresholds: [0.35, 0.70],
+          labels: [ { name: pick("偏低", "LOW"), color: "var(--st-idle)" }, { name: pick("待复核", "REVIEW"), color: "var(--st-warn)" }, { name: pick("较高", "HIGH"), color: "var(--st-ok)" } ],
+          latch: false }),
+        RO("timeseries", pick("甘草质量指数 Q(t)", "Licorice quality index Q(t)"), { channels: ["score"] }),
+        RO("channels", pick("示例输出通道", "Example output channels"), { channels: ["out_1", "out_2", "out_3"] }),
+        RO("dose", pick("剂量响应", "Dose–response"), { input: "in_a", output: "score" }),
         RO("heatmap", pick("层活性", "Layer activity"), {}),
       ],
     };
@@ -238,8 +239,8 @@
       note: pick("带真值表的双输入门。", "Two-input gate with a truth table."), make: logicAnd },
     { id: "multiout", name: pick("多输出报告器", "Multi-output reporter"), domain: pick("报告器面板", "Reporter panel"),
       note: pick("一个网络，三个输出通道。", "One network, three output channels."), make: multiOutput },
-    { id: "water", name: pick("水质监测示例", "Water quality monitor"), domain: pick("环境应用", "Environmental"),
-      note: pick("示例应用：根据三类分析物估计污染风险。", "Example application: contamination risk from three analytes."), make: waterQuality },
+    { id: "licorice", name: pick("甘草质量检测示例", "Licorice quality example"), domain: pick("领域示例", "Domain example"),
+      note: pick("示例应用：把三类归一化成分信号整合为一个质量指数。", "Example application: integrate three normalized input signals into a quality index."), make: licoriceQuality },
   ];
 
   window.Model = {
