@@ -7,7 +7,7 @@ const { useState, useMemo, useRef, useEffect, useCallback } = React;
 const {
   useTweaks, TweaksPanel, TweakSection, TweakToggle, TweakColor, TweakRadio,
   LeftRail, TopBar, LibraryDock, PlaceholderPage, NetworkCanvas, ReadoutDock,
-  Inspector, RunsPage, ComparePanel, OnboardingOverlay,
+  Inspector, RunsPage, ComparePanel, OnboardingOverlay, ReversePage,
 } = window;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -410,6 +410,12 @@ const onFile = (e) => {
     rd.readAsText(file);
   }, [refreshRuns, showToast]);
 
+  const applyReverseCandidate = useCallback((candidate) => {
+    edit((p) => window.ReverseSolver.applyCandidate(p, candidate));
+    showToast(tr("reverseApplied"));
+    setLatched({});
+  }, [edit, showToast]);
+
   // ---- view helpers ---------------------------------------------
   const fitView = useCallback(() => {
     const layout = window._canvasLayout;
@@ -533,12 +539,14 @@ const onFile = (e) => {
           )}
         </>
       ) : (
-        <main className={"stage stage-page" + (page === "runs" ? " runs-mode" : "")} style={{ gridArea: "libdock / libdock / inspector / inspector" }}>
+        <main className={"stage stage-page" + (page === "runs" ? " runs-mode" : "") + (page === "reverse" ? " reverse-mode" : "")} style={{ gridArea: "libdock / libdock / inspector / inspector" }}>
           {page === "runs"
             ? <RunsPage runs={runs} onBack={() => setPage("workbench")}
                 onDelete={deleteRun} onClearAll={clearRuns}
                 onRestore={restoreRun} onUpdateNote={updateRunNote}
                 onExport={exportRuns} onImportFile={importRunsFile} />
+            : page === "reverse"
+              ? <ReversePage project={project} onBack={() => setPage("workbench")} onApply={applyReverseCandidate} />
             : <PlaceholderPage page={page} onBack={() => setPage("workbench")} />}
         </main>
       )}

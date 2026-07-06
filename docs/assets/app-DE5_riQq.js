@@ -1,1 +1,572 @@
-import{j as i}from"./jsx-runtime-u17CrQMm.js";const Ze=window.React,Qe=window.ReactDOM,{useState:f,useMemo:de,useRef:ie,useEffect:O,useCallback:r}=Ze,{useTweaks:et,TweaksPanel:tt,TweakSection:le,TweakToggle:ue,TweakColor:nt,TweakRadio:ot,LeftRail:st,TopBar:rt,LibraryDock:at,PlaceholderPage:ct,NetworkCanvas:dt,ReadoutDock:it,Inspector:lt,RunsPage:ut,ComparePanel:pt,OnboardingOverlay:wt}=window,ft={accent:"#3E8EF7",dark:!0,density:"regular",showGrid:!0},pe={compact:{rail:52,dockL:240,dockR:304,dockB:264,bar:48,u:3},regular:{rail:56,dockL:264,dockR:328,dockB:286,bar:52,u:4},comfy:{rail:60,dockL:288,dockR:352,dockB:308,bar:56,u:5}};let we=100;function mt(){const[a,m]=et(ft),[R,I]=f(()=>window.I18n?.lang||"zh"),[c,k]=f(()=>window.Model.defaultProject()),[p,g]=f(null),[E,L]=f("workbench"),[C,ge]=f(!0),[B,ye]=f(!0),[he,ke]=f(!0),[_,N]=f({z:1,x:60,y:30}),[T,S]=f({}),[Re,x]=f(!1),[Y,v]=f({A:null,B:null}),[F,z]=f(!1),[Z,Q]=f(null),[ee,te]=f(()=>window.Runs?window.Runs.list():[]),[A,U]=f(()=>{try{return localStorage.getItem("bionet.onboarded")==="1"?-1:0}catch{return 0}}),ne=ie(null),b=ie({past:[],future:[]}),[yt,P]=f(0),J=30,l=e=>window.I18n?.t(e)||e,y=r(e=>{const n=Date.now();Q({text:e,ts:n}),setTimeout(()=>Q(t=>t&&t.ts===n?null:t),1800)},[]),be=r(()=>{const e=window.I18n.nextLang();window.I18n.switchTo(e),I(e),window.location.reload()},[]);O(()=>{document.documentElement.setAttribute("data-theme",a.dark?"dark":"light")},[a.dark]),O(()=>{const e=document.documentElement;e.style.setProperty("--accent",a.accent),e.style.setProperty("--accent-strong",gt(a.accent,a.dark?16:-14)),e.style.setProperty("--accent-weak",a.dark?fe(a.accent,"#0C100F",.82):fe(a.accent,"#ffffff",.88));const n=pe[a.density]||pe.regular;e.style.setProperty("--rail-w",n.rail+"px"),e.style.setProperty("--dock-l",n.dockL+"px"),e.style.setProperty("--dock-r",n.dockR+"px"),e.style.setProperty("--dock-b",n.dockB+"px"),e.style.setProperty("--bar-h",n.bar+"px"),e.style.setProperty("--u",n.u+"px")},[a.accent,a.density,a.dark]);const h=de(()=>window.Sim.run(c),[c]);O(()=>{const e={};c.readouts.forEach(n=>{n.type==="classification"&&n.config.latch&&window.Sim.crossedTop(h,n.config)&&!T[n.id]&&(e[n.id]=!0)}),Object.keys(e).length&&S(n=>({...n,...e}))},[h,c.readouts]);const oe=de(()=>{const e=c.readouts.find(o=>o.type==="classification");if(!e)return null;const n=window.Sim.topIndex(e.config),t=e.config.latch&&T[e.id]?{label:e.config.labels[n].name,color:e.config.labels[n].color}:window.Sim.classify(window.Sim.channelFinal(h,e.config.channel),e.config);return{label:t.label,color:t.color,rule:e.title}},[c,h,T]),xe=e=>e.meta.kind==="example"?{...e,meta:{...e.meta,kind:"user"}}:e,d=r(e=>{k(n=>{const t=xe(e(n));return t===n?n:(b.current.past.push(n),b.current.past.length>J&&b.current.past.shift(),b.current.future=[],t)}),P(n=>n+1),x(!0)},[]),H=r(()=>{const e=b.current;e.past.length&&(k(n=>{const t=e.past.pop();return e.future.push(n),e.future.length>J&&e.future.shift(),t}),P(n=>n+1),x(!0))},[]),K=r(()=>{const e=b.current;e.future.length&&(k(n=>{const t=e.future.pop();return e.past.push(n),e.past.length>J&&e.past.shift(),t}),P(n=>n+1),x(!0))},[]),D=()=>{b.current={past:[],future:[]},P(e=>e+1)},je=b.current.past.length>0,Ee=b.current.future.length>0,se=r((e,n,t)=>d(o=>({...o,nodes:o.nodes.map(s=>s.id===e?{...s,[n]:t}:s)})),[d]),W=r((e,n,t)=>d(o=>({...o,edges:o.edges.map(s=>{if(s.id!==e)return s;const u={...s,[n]:t};return n==="sign"&&(u.w=Math.sign(t||1)*Math.abs(s.w||.5)),n==="w"&&(u.sign=t>=0?1:-1),u})})),[d]),Se=r((e,n)=>d(t=>({...t,params:{...t.params,[e]:n}})),[d]),ve=r((e,n,t)=>d(o=>({...o,nodes:o.nodes.map(s=>s.id===e?{...s,x:n,y:t}:s)})),[d]),Ne=r((e,n)=>d(t=>({...t,readouts:t.readouts.map(o=>o.id===e?{...o,...n.title!=null?{title:n.title}:{},...n.config?{config:n.config}:{}}:o)})),[d]),Le=r(e=>d(n=>({...n,readouts:[...n.readouts,window.Model.newReadout(e)]})),[d]),Te=r(e=>{d(n=>({...n,readouts:n.readouts.filter(t=>t.id!==e)})),g(n=>n?.type==="readout"&&n.id===e?null:n)},[d]),Ae=e=>S(n=>({...n,[e]:!1})),Pe=r(e=>d(n=>({...n,readouts:n.readouts.map(t=>t.id===e?{...t,pinned:!t.pinned}:t)})),[d]),De=r((e,n)=>{const t=e+">"+n;d(o=>o.edges.some(s=>s.id===t)?o:{...o,edges:[...o.edges,{id:t,from:e,to:n,w:1,sign:1}]}),g({type:"edge",id:t})},[d]),G=r(e=>{d(n=>({...n,nodes:n.nodes.filter(t=>t.id!==e),edges:n.edges.filter(t=>t.from!==e&&t.to!==e)})),g(n=>n?.type==="node"&&n.id===e?null:n)},[d]),V=r(e=>{d(n=>({...n,edges:n.edges.filter(t=>t.id!==e)})),g(n=>n?.type==="edge"&&n.id===e?null:n)},[d]),X=r(e=>{const n="n_"+we++;d(t=>{const o=t.nodes.find($=>$.id===e);if(!o)return t;const s=window._canvasLayout,u=s?s.NODE_W+16:200,w={x:o.x+u,y:o.y+12},M=s?s.clampNodePos(w.x,w.y):w;return{...t,nodes:[...t.nodes,{...o,id:n,x:M.x,y:M.y,label:o.label+" "+(window.I18n?.t("copiedNode")||"copy")}]}}),g({type:"node",id:n})},[d]),Me=r(e=>{const n=window.Model.KIND_META[e],t=e+"_"+we++,o=window._canvasLayout,s=o?o.pickLayerSlot(e,c.nodes):{x:410,y:70},u={id:t,kind:e,label:n.label,sub:R==="zh"?"新建":"new",x:s.x,y:s.y};(window.Model.PARAM_SCHEMA[e]||[]).forEach(w=>{u[w.key]=w.key==="C"?.4:w.key==="Km"?.5:w.key==="n"?2:w.key==="weight"?.3:w.key==="gain"?3.2:w.key==="tauMature"?4:w.key==="gainOut"?1:0}),e==="reporter"&&(u.tint="var(--ch-1)"),d(w=>({...w,nodes:[...w.nodes,u]})),g({type:"node",id:t})},[d,c.nodes,R]),Oe=e=>{const n=window.Model.EXAMPLES.find(t=>t.id===e);n&&(k(n.make()),g(null),S({}),x(!1),v({A:null,B:null}),D())},Ie=()=>{const e=window.Model.defaultProject();e.meta={id:"untitled",name:l("untitledNetwork"),kind:"user",domain:l("custom"),note:R==="zh"?"从默认骨架创建的空白网络。":"A blank network from the default backbone."},k(e),g(null),S({}),x(!1),v({A:null,B:null}),D()},Ce=()=>{const e={format:"bionet-studio/v2",note:"ILLUSTRATIVE DEMO — not calibrated",project:c},n=new Blob([JSON.stringify(e,null,2)],{type:"application/json"}),t=document.createElement("a");t.href=URL.createObjectURL(n),t.download=`${(c.meta?.name||"network").replace(/\s+/g,"-").toLowerCase()}.json`,t.click(),URL.revokeObjectURL(t.href)},Be=()=>ne.current?.click(),_e=e=>{const n=window.Model.defaultProject(),t=window.Model.clone?window.Model.clone(e):JSON.parse(JSON.stringify(e));return!Array.isArray(t.nodes)||!Array.isArray(t.edges)?null:(t.meta={...n.meta,id:t.meta?.id||"import",name:t.meta?.name||l("importedNetwork"),kind:"user",domain:t.meta?.domain||l("custom"),note:t.meta?.note||""},t.params={...n.params,...t.params||{}},t.readouts=Array.isArray(t.readouts)?t.readouts:n.readouts,t.aggregate={...n.aggregate,...t.aggregate||{}},t.channels={...n.channels||{},...t.channels||{}},t)},Fe=e=>{const n=e.target.files?.[0];if(!n)return;const t=new FileReader;t.onload=()=>{try{const o=JSON.parse(t.result),s=o.project||o.model||o,u=_e(s);if(!u)return;k(u),g(null),S({}),x(!1),v({A:null,B:null}),D()}catch(o){console.warn("Failed to import project JSON:",o)}},t.readAsText(n),e.target.value=""},ze=r(()=>{k(e=>({...e})),S({}),window.Runs?(window.Runs.record(c,h),te(window.Runs.list()),y(l("runRecorded"))):y(l("runFlash"))},[c,h,y]),Ue=()=>{Ce(),x(!1)},Je=r(e=>{const n={label:e==="A"?"A":"B",ts:Date.now(),project:window.Model.clone(c),sim:JSON.parse(JSON.stringify(h))};v(t=>({...t,[e]:n})),y(l(e==="A"?"snapshotSavedA":"snapshotSavedB"))},[c,h,y]),re=r(e=>{v(n=>({...n,[e]:null}))},[]),He=r(()=>z(!0),[]),Ke=r(()=>z(!1),[]),j=r(()=>{window.Runs&&te(window.Runs.list())},[]),We=r(e=>{window.Runs&&(window.Runs.remove(e),j())},[j]),Ge=r(()=>{window.Runs&&(window.Runs.clear(),j(),y(l("runsCleared")))},[j,y]),Ve=r((e,n)=>{window.Runs&&(window.Runs.update(e,{note:n}),j())},[j]),Xe=r(e=>{if(!window.Runs)return;const n=window.Runs.list().find(t=>t.id===e);n&&(k(window.Model.clone(n.project)),g(null),S({}),x(!1),v({A:null,B:null}),D(),L("workbench"),y(l("runRestored")))},[y]),$e=r(e=>{if(!window.Runs)return;const n=window.Runs.exportRuns(e),t=new Blob([JSON.stringify(n,null,2)],{type:"application/json"}),o=document.createElement("a");o.href=URL.createObjectURL(t);const s=new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");o.download="bionet-runs-"+s+".json",o.click(),URL.revokeObjectURL(o.href)},[]),qe=r(e=>{if(!e||!window.Runs)return;const n=new FileReader;n.onload=()=>{try{const t=JSON.parse(n.result),o=window.Runs.importRuns(t);j(),y(o?`${l("runsImported")} (${o})`:l("runsImportedNone"))}catch{y(l("runsImportFailed"))}},n.readAsText(e)},[j,y]),ae=r(()=>{const e=window._canvasLayout,n=e?.WORLD_W??1040,t=e?.WORLD_H??480,o=document.querySelector(".canvas");if(!o)return;const s=o.getBoundingClientRect(),u=Math.min((s.width-56)/n,(s.height-56)/t,1.4);N({z:u,x:(s.width-n*u)/2,y:(s.height-t*u)/2})},[]),ce=r(e=>{const n=window._canvasLayout;if(!n)return;const t=c.nodes.find($=>$.id===e);if(!t)return;const o=document.querySelector(".canvas");if(!o)return;const s=o.getBoundingClientRect(),u=_.z,w=t.x+n.NODE_W/2,M=t.y+n.NODE_H/2;N({z:u,x:s.width/2-w*u,y:s.height/2-M*u})},[c.nodes,_.z]);O(()=>{const e=t=>{if(!t)return!1;const o=t.tagName;return o==="INPUT"||o==="TEXTAREA"||o==="SELECT"||t.isContentEditable},n=t=>{if(e(t.target))return;const o=t.ctrlKey||t.metaKey;if(o&&!t.shiftKey&&(t.key==="z"||t.key==="Z")){t.preventDefault(),H();return}if(o&&(t.key==="y"||t.key==="Y"||(t.key==="z"||t.key==="Z")&&t.shiftKey)){t.preventDefault(),K();return}if(o&&(t.key==="d"||t.key==="D")){p?.type==="node"&&(t.preventDefault(),X(p.id));return}if(!o&&(t.key==="Delete"||t.key==="Backspace")){p?.type==="node"?(t.preventDefault(),G(p.id)):p?.type==="edge"&&(t.preventDefault(),V(p.id));return}if(t.key==="Escape"){if(F){z(!1);return}if(A>=0){U(-1);try{localStorage.setItem("bionet.onboarded","1")}catch{}return}p&&g(null);return}if(!o&&(t.key==="f"||t.key==="F")){t.preventDefault(),p?.type==="node"?ce(p.id):ae();return}if(!o&&(t.key==="i"||t.key==="I")){if(p?.type==="edge"){const s=c.edges.find(u=>u.id===p.id);s&&(t.preventDefault(),W(p.id,"sign",s.sign<0?1:-1))}return}if(!o&&(t.key==="+"||t.key==="=")){t.preventDefault(),N(s=>({...s,z:Math.min(2.2,s.z*1.1)}));return}if(!o&&(t.key==="-"||t.key==="_")){t.preventDefault(),N(s=>({...s,z:Math.max(.45,s.z*.9)}));return}};return window.addEventListener("keydown",n),()=>window.removeEventListener("keydown",n)},[p,H,K,X,G,V,c.edges,W,ce,ae,F,A]);const Ye="app"+(C&&E==="workbench"?"":" lib-collapsed")+(B&&E==="workbench"?"":" insp-collapsed");return i.jsxs("div",{className:Ye+(a.showGrid?"":" no-grid"),children:[i.jsx(st,{page:E,onNav:L,theme:a.dark?"dark":"light",onTheme:()=>m("dark",!a.dark),runsCount:ee.length}),i.jsx(rt,{project:c,verdict:oe,examples:window.Model.EXAMPLES,dirty:Re,onPickExample:Oe,onNewProject:Ie,onImport:Be,onExport:Ue,onRun:ze,lang:R,onLang:be,libOpen:C,inspOpen:B,onToggleLib:()=>ge(e=>!e),onToggleInsp:()=>ye(e=>!e),canUndo:je,canRedo:Ee,onUndo:H,onRedo:K,snapshots:Y,onSaveSnapshot:Je,onClearSnapshot:re,onCompare:He}),E==="workbench"?i.jsxs(i.Fragment,{children:[C&&i.jsx(at,{project:c,sim:h,onAddNode:Me,onQuickInput:(e,n)=>se(e,"C",n),onSelect:g,selection:p}),i.jsxs("main",{className:"stage",style:{gridArea:"canvas"},children:[i.jsx(dt,{model:c,sim:h,selection:p,onSelect:g,onNodeMove:ve,onAddEdge:De,onDeleteNode:G,onDuplicateNode:X,view:_,setView:N}),i.jsx(it,{project:c,sim:h,latched:T,onResetLatch:Ae,onAddReadout:Le,onRemoveReadout:Te,onConfigure:e=>g({type:"readout",id:e}),onTogglePin:Pe,collapsed:!he,onToggleCollapse:()=>ke(e=>!e),verdict:oe})]}),B&&i.jsx(lt,{project:c,sim:h,selection:p,onParam:se,onEdgeParam:W,onEdgeDelete:V,onModelParam:Se,onReadout:Ne,onSelectReadout:e=>g({type:"readout",id:e})})]}):i.jsx("main",{className:"stage stage-page"+(E==="runs"?" runs-mode":""),style:{gridArea:"libdock / libdock / inspector / inspector"},children:E==="runs"?i.jsx(ut,{runs:ee,onBack:()=>L("workbench"),onDelete:We,onClearAll:Ge,onRestore:Xe,onUpdateNote:Ve,onExport:$e,onImportFile:qe}):i.jsx(ct,{page:E,onBack:()=>L("workbench")})}),i.jsx("input",{ref:ne,type:"file",accept:"application/json",style:{display:"none"},onChange:Fe}),F&&i.jsx(pt,{project:c,snapshots:Y,onClose:Ke,onClearSnapshot:re}),A>=0&&i.jsx(wt,{step:A,onNext:()=>U(e=>e+1),onDone:()=>{U(-1);try{localStorage.setItem("bionet.onboarded","1")}catch{}}}),Z&&i.jsx("div",{className:"toast",children:Z.text}),i.jsxs(tt,{title:l("settings"),children:[i.jsx(le,{label:l("theme")}),i.jsx(ue,{label:l("darkMode"),value:a.dark,onChange:e=>m("dark",e)}),i.jsx(nt,{label:l("accent"),value:a.accent,options:["#3E8EF7","#2DBE9E","#3FCB84","#E6B24A","#E8709E"],onChange:e=>m("accent",e)}),i.jsx(le,{label:l("workspace")}),i.jsx(ot,{label:l("density"),value:a.density,options:[{value:"compact",label:l("compact")},{value:"regular",label:l("regular")},{value:"comfy",label:l("comfy")}],onChange:e=>m("density",e)}),i.jsx(ue,{label:l("canvasGrid"),value:a.showGrid,onChange:e=>m("showGrid",e)})]})]})}function q(a){const m=a.replace("#","");return[parseInt(m.slice(0,2),16),parseInt(m.slice(2,4),16),parseInt(m.slice(4,6),16)]}function me(a){return"#"+a.map(m=>Math.max(0,Math.min(255,Math.round(m))).toString(16).padStart(2,"0")).join("")}function gt(a,m){return me(q(a).map(R=>R+m/100*255))}function fe(a,m,R){const I=q(a),c=q(m);return me(I.map((k,p)=>k*(1-R)+c[p]*R))}Qe.createRoot(document.getElementById("root")).render(i.jsx(mt,{}));
+/* ===================================================================
+   bionet-studio — app.jsx  (state + composition, general platform)
+   =================================================================== */
+const React = window.React;
+const ReactDOM = window.ReactDOM;
+const { useState, useMemo, useRef, useEffect, useCallback } = React;
+const { useTweaks, TweaksPanel, TweakSection, TweakToggle, TweakColor, TweakRadio, LeftRail, TopBar, LibraryDock, PlaceholderPage, NetworkCanvas, ReadoutDock, Inspector, RunsPage, ComparePanel, OnboardingOverlay, ReversePage, } = window;
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/ {
+    "accent": "#3E8EF7",
+    "dark": true,
+    "density": "regular",
+    "showGrid": true
+} /*EDITMODE-END*/;
+const DENSITY = {
+    compact: { rail: 52, dockL: 240, dockR: 304, dockB: 264, bar: 48, u: 3 },
+    regular: { rail: 56, dockL: 264, dockR: 328, dockB: 286, bar: 52, u: 4 },
+    comfy: { rail: 60, dockL: 288, dockR: 352, dockB: 308, bar: 56, u: 5 },
+};
+let _uid = 100;
+function App() {
+    const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+    const [lang, setLang] = useState(() => window.I18n?.lang || "zh");
+    const [project, setProject] = useState(() => window.Model.defaultProject());
+    const [selection, setSelection] = useState(null);
+    const [page, setPage] = useState("workbench");
+    const [libOpen, setLibOpen] = useState(true);
+    const [inspOpen, setInspOpen] = useState(true);
+    const [dockOpen, setDockOpen] = useState(true);
+    const [view, setView] = useState({ z: 1, x: 60, y: 30 });
+    const [latched, setLatched] = useState({});
+    const [dirty, setDirty] = useState(false);
+    const [snapshots, setSnapshots] = useState({ A: null, B: null });
+    const [compareOpen, setCompareOpen] = useState(false);
+    const [toast, setToast] = useState(null); // { text, ts }
+    const [runs, setRuns] = useState(() => (window.Runs ? window.Runs.list() : []));
+    const [onboardStep, setOnboardStep] = useState(() => {
+        try {
+            return localStorage.getItem("bionet.onboarded") === "1" ? -1 : 0;
+        }
+        catch (err) {
+            return 0;
+        }
+    });
+    const fileRef = useRef(null);
+    const history = useRef({ past: [], future: [] });
+    const [histTick, setHistTick] = useState(0);
+    const HIST_LIMIT = 30;
+    const tr = (key) => window.I18n?.t(key) || key;
+    const showToast = useCallback((text) => {
+        const ts = Date.now();
+        setToast({ text, ts });
+        setTimeout(() => setToast((cur) => (cur && cur.ts === ts ? null : cur)), 1800);
+    }, []);
+    const switchLang = useCallback(() => {
+        const next = window.I18n.nextLang();
+        window.I18n.switchTo(next);
+        setLang(next);
+        window.location.reload();
+    }, []);
+    // ---- theme & tokens -------------------------------------------
+    useEffect(() => { document.documentElement.setAttribute("data-theme", t.dark ? "dark" : "light"); }, [t.dark]);
+    useEffect(() => {
+        const r = document.documentElement;
+        r.style.setProperty("--accent", t.accent);
+        r.style.setProperty("--accent-strong", shade(t.accent, t.dark ? 16 : -14));
+        r.style.setProperty("--accent-weak", t.dark ? mix(t.accent, "#0C100F", 0.82) : mix(t.accent, "#ffffff", 0.88));
+        const d = DENSITY[t.density] || DENSITY.regular;
+        r.style.setProperty("--rail-w", d.rail + "px");
+        r.style.setProperty("--dock-l", d.dockL + "px");
+        r.style.setProperty("--dock-r", d.dockR + "px");
+        r.style.setProperty("--dock-b", d.dockB + "px");
+        r.style.setProperty("--bar-h", d.bar + "px");
+        r.style.setProperty("--u", d.u + "px");
+    }, [t.accent, t.density, t.dark]);
+    // ---- simulation (live) ----------------------------------------
+    const sim = useMemo(() => window.Sim.run(project), [project]);
+    // persistent latch per classification readout
+    useEffect(() => {
+        const up = {};
+        project.readouts.forEach((ro) => {
+            if (ro.type === "classification" && ro.config.latch && window.Sim.crossedTop(sim, ro.config) && !latched[ro.id])
+                up[ro.id] = true;
+        });
+        if (Object.keys(up).length)
+            setLatched((l) => ({ ...l, ...up }));
+    }, [sim, project.readouts]);
+    // primary verdict for the top bar (first classification readout)
+    const verdict = useMemo(() => {
+        const ro = project.readouts.find((r) => r.type === "classification");
+        if (!ro)
+            return null;
+        const top = window.Sim.topIndex(ro.config);
+        const c = (ro.config.latch && latched[ro.id])
+            ? { label: ro.config.labels[top].name, color: ro.config.labels[top].color }
+            : window.Sim.classify(window.Sim.channelFinal(sim, ro.config.channel), ro.config);
+        return { label: c.label, color: c.color, rule: ro.title };
+    }, [project, sim, latched]);
+    // ---- mutators -------------------------------------------------
+    const markUser = (p) => p.meta.kind === "example" ? { ...p, meta: { ...p.meta, kind: "user" } } : p;
+    const edit = useCallback((fn) => {
+        setProject((p) => {
+            const next = markUser(fn(p));
+            if (next === p)
+                return p;
+            history.current.past.push(p);
+            if (history.current.past.length > HIST_LIMIT)
+                history.current.past.shift();
+            history.current.future = [];
+            return next;
+        });
+        setHistTick((n) => n + 1);
+        setDirty(true);
+    }, []);
+    const undo = useCallback(() => {
+        const h = history.current;
+        if (!h.past.length)
+            return;
+        setProject((cur) => {
+            const prev = h.past.pop();
+            h.future.push(cur);
+            if (h.future.length > HIST_LIMIT)
+                h.future.shift();
+            return prev;
+        });
+        setHistTick((n) => n + 1);
+        setDirty(true);
+    }, []);
+    const redo = useCallback(() => {
+        const h = history.current;
+        if (!h.future.length)
+            return;
+        setProject((cur) => {
+            const next = h.future.pop();
+            h.past.push(cur);
+            if (h.past.length > HIST_LIMIT)
+                h.past.shift();
+            return next;
+        });
+        setHistTick((n) => n + 1);
+        setDirty(true);
+    }, []);
+    const resetHistory = () => { history.current = { past: [], future: [] }; setHistTick((n) => n + 1); };
+    // canUndo/canRedo recompute each render thanks to histTick.
+    void histTick;
+    const canUndo = history.current.past.length > 0;
+    const canRedo = history.current.future.length > 0;
+    const setNodeParam = useCallback((id, key, val) => edit((p) => ({ ...p, nodes: p.nodes.map((n) => n.id === id ? { ...n, [key]: val } : n) })), [edit]);
+    const setEdgeParam = useCallback((id, key, val) => edit((p) => ({ ...p, edges: p.edges.map((e) => {
+            if (e.id !== id)
+                return e;
+            const ne = { ...e, [key]: val };
+            if (key === "sign")
+                ne.w = Math.sign(val || 1) * Math.abs(e.w || 0.5);
+            if (key === "w")
+                ne.sign = val >= 0 ? 1 : -1;
+            return ne;
+        }) })), [edit]);
+    const setModelParam = useCallback((key, val) => edit((p) => ({ ...p, params: { ...p.params, [key]: val } })), [edit]);
+    const moveNode = useCallback((id, x, y) => edit((p) => ({ ...p, nodes: p.nodes.map((n) => n.id === id ? { ...n, x, y } : n) })), [edit]);
+    const setReadout = useCallback((id, patch) => edit((p) => ({ ...p, readouts: p.readouts.map((r) => r.id === id
+            ? { ...r, ...(patch.title != null ? { title: patch.title } : {}), ...(patch.config ? { config: patch.config } : {}) } : r) })), [edit]);
+    const addReadout = useCallback((type) => edit((p) => ({ ...p, readouts: [...p.readouts, window.Model.newReadout(type)] })), [edit]);
+    const removeReadout = useCallback((id) => {
+        edit((p) => ({ ...p, readouts: p.readouts.filter((r) => r.id !== id) }));
+        setSelection((s) => (s?.type === "readout" && s.id === id ? null : s));
+    }, [edit]);
+    const resetLatch = (id) => setLatched((l) => ({ ...l, [id]: false }));
+    const togglePin = useCallback((id) => edit((p) => ({ ...p, readouts: p.readouts.map((r) => r.id === id ? { ...r, pinned: !r.pinned } : r) })), [edit]);
+    const addEdge = useCallback((from, to) => {
+        const id = from + ">" + to;
+        edit((p) => p.edges.some((e) => e.id === id) ? p : ({ ...p, edges: [...p.edges, { id, from, to, w: 1.0, sign: 1 }] }));
+        setSelection({ type: "edge", id });
+    }, [edit]);
+    const deleteNode = useCallback((id) => {
+        edit((p) => ({ ...p, nodes: p.nodes.filter((n) => n.id !== id), edges: p.edges.filter((e) => e.from !== id && e.to !== id) }));
+        setSelection((s) => (s?.type === "node" && s.id === id ? null : s));
+    }, [edit]);
+    const deleteEdge = useCallback((id) => {
+        edit((p) => ({ ...p, edges: p.edges.filter((e) => e.id !== id) }));
+        setSelection((s) => (s?.type === "edge" && s.id === id ? null : s));
+    }, [edit]);
+    const duplicateNode = useCallback((id) => {
+        const nid = "n_" + (_uid++);
+        edit((p) => {
+            const src = p.nodes.find((n) => n.id === id);
+            if (!src)
+                return p;
+            const layout = window._canvasLayout;
+            const offset = layout ? layout.NODE_W + 16 : 200;
+            const raw = { x: src.x + offset, y: src.y + 12 };
+            const pos = layout ? layout.clampNodePos(raw.x, raw.y) : raw;
+            return { ...p, nodes: [...p.nodes, { ...src, id: nid, x: pos.x, y: pos.y, label: src.label + " " + (window.I18n?.t("copiedNode") || "copy") }] };
+        });
+        setSelection({ type: "node", id: nid });
+    }, [edit]);
+    const addNode = useCallback((kind) => {
+        const meta = window.Model.KIND_META[kind];
+        const id = kind + "_" + (_uid++);
+        const layout = window._canvasLayout;
+        const slot = layout ? layout.pickLayerSlot(kind, project.nodes) : { x: 410, y: 70 };
+        const node = { id, kind, label: meta.label, sub: lang === "zh" ? "新建" : "new", x: slot.x, y: slot.y };
+        (window.Model.PARAM_SCHEMA[kind] || []).forEach((pp) => {
+            node[pp.key] = pp.key === "C" ? 0.4 : pp.key === "Km" ? 0.5 : pp.key === "n" ? 2 : pp.key === "weight" ? 0.3
+                : pp.key === "gain" ? 3.2 : pp.key === "tauMature" ? 4 : pp.key === "gainOut" ? 1 : 0;
+        });
+        if (kind === "reporter")
+            node.tint = "var(--ch-1)";
+        edit((p) => ({ ...p, nodes: [...p.nodes, node] }));
+        setSelection({ type: "node", id });
+    }, [edit, project.nodes, lang]);
+    const pickExample = (id) => {
+        const ex = window.Model.EXAMPLES.find((e) => e.id === id);
+        if (!ex)
+            return;
+        setProject(ex.make());
+        setSelection(null);
+        setLatched({});
+        setDirty(false);
+        setSnapshots({ A: null, B: null });
+        resetHistory();
+    };
+    const newProject = () => {
+        const p = window.Model.defaultProject();
+        p.meta = { id: "untitled", name: tr("untitledNetwork"), kind: "user", domain: tr("custom"), note: lang === "zh" ? "从默认骨架创建的空白网络。" : "A blank network from the default backbone." };
+        setProject(p);
+        setSelection(null);
+        setLatched({});
+        setDirty(false);
+        setSnapshots({ A: null, B: null });
+        resetHistory();
+    };
+    // ---- import / export ------------------------------------------
+    const doExport = () => {
+        const data = {
+            format: "bionet-studio/v2",
+            note: "ILLUSTRATIVE DEMO — not calibrated",
+            project,
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${(project.meta?.name || "network")
+            .replace(/\s+/g, "-")
+            .toLowerCase()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    };
+    const doImport = () => fileRef.current?.click();
+    // 规范化导入项目：兼容旧版本 JSON，避免缺少字段导致页面失效
+    const normalizeImportedProject = (rawProject) => {
+        const fallback = window.Model.defaultProject();
+        const project = window.Model.clone
+            ? window.Model.clone(rawProject)
+            : JSON.parse(JSON.stringify(rawProject));
+        // nodes / edges 是项目能否恢复的最低要求
+        if (!Array.isArray(project.nodes) || !Array.isArray(project.edges)) {
+            return null;
+        }
+        // 兼容旧版本缺失 meta 的情况
+        project.meta = {
+            ...fallback.meta,
+            id: project.meta?.id || "import",
+            name: project.meta?.name || tr("importedNetwork"),
+            kind: "user",
+            domain: project.meta?.domain || tr("custom"),
+            note: project.meta?.note || "",
+        };
+        // 兼容旧版本缺失 params 的情况
+        project.params = {
+            ...fallback.params,
+            ...(project.params || {}),
+        };
+        // 兼容旧版本缺失 readouts 的情况
+        project.readouts = Array.isArray(project.readouts)
+            ? project.readouts
+            : fallback.readouts;
+        // 兼容旧版本缺失 aggregate 的情况
+        project.aggregate = {
+            ...fallback.aggregate,
+            ...(project.aggregate || {}),
+        };
+        // 兼容旧版本缺失 channels 的情况
+        project.channels = {
+            ...(fallback.channels || {}),
+            ...(project.channels || {}),
+        };
+        return project;
+    };
+    const onFile = (e) => {
+        const f = e.target.files?.[0];
+        if (!f)
+            return;
+        const rd = new FileReader();
+        rd.onload = () => {
+            try {
+                const data = JSON.parse(rd.result);
+                const rawProject = data.project || data.model || data;
+                const importedProject = normalizeImportedProject(rawProject);
+                if (!importedProject)
+                    return;
+                setProject(importedProject);
+                setSelection(null);
+                setLatched({});
+                setDirty(false);
+                setSnapshots({ A: null, B: null });
+                resetHistory();
+            }
+            catch (err) {
+                console.warn("Failed to import project JSON:", err);
+            }
+        };
+        rd.readAsText(f);
+        e.target.value = "";
+    };
+    const onRun = useCallback(() => {
+        setProject((p) => ({ ...p }));
+        setLatched({});
+        if (window.Runs) {
+            const run = window.Runs.record(project, sim);
+            setRuns(window.Runs.list());
+            showToast(tr("runRecorded"));
+        }
+        else {
+            showToast(tr("runFlash"));
+        }
+    }, [project, sim, showToast]);
+    const doExportClean = () => { doExport(); setDirty(false); };
+    // ---- A/B snapshots --------------------------------------------
+    const saveSnapshot = useCallback((slot) => {
+        const snap = {
+            label: slot === "A" ? "A" : "B",
+            ts: Date.now(),
+            project: window.Model.clone(project),
+            sim: JSON.parse(JSON.stringify(sim)),
+        };
+        setSnapshots((s) => ({ ...s, [slot]: snap }));
+        showToast(tr(slot === "A" ? "snapshotSavedA" : "snapshotSavedB"));
+    }, [project, sim, showToast]);
+    const clearSnapshot = useCallback((slot) => {
+        setSnapshots((s) => ({ ...s, [slot]: null }));
+    }, []);
+    const openCompare = useCallback(() => setCompareOpen(true), []);
+    const closeCompare = useCallback(() => setCompareOpen(false), []);
+    // ---- Run history ----------------------------------------------
+    const refreshRuns = useCallback(() => { if (window.Runs)
+        setRuns(window.Runs.list()); }, []);
+    const deleteRun = useCallback((id) => { if (window.Runs) {
+        window.Runs.remove(id);
+        refreshRuns();
+    } }, [refreshRuns]);
+    const clearRuns = useCallback(() => { if (window.Runs) {
+        window.Runs.clear();
+        refreshRuns();
+        showToast(tr("runsCleared"));
+    } }, [refreshRuns, showToast]);
+    const updateRunNote = useCallback((id, note) => { if (window.Runs) {
+        window.Runs.update(id, { note });
+        refreshRuns();
+    } }, [refreshRuns]);
+    const restoreRun = useCallback((id) => {
+        if (!window.Runs)
+            return;
+        const run = window.Runs.list().find((r) => r.id === id);
+        if (!run)
+            return;
+        setProject(window.Model.clone(run.project));
+        setSelection(null);
+        setLatched({});
+        setDirty(false);
+        setSnapshots({ A: null, B: null });
+        resetHistory();
+        setPage("workbench");
+        showToast(tr("runRestored"));
+    }, [showToast]);
+    const exportRuns = useCallback((ids) => {
+        if (!window.Runs)
+            return;
+        const data = window.Runs.exportRuns(ids);
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        a.download = "bionet-runs-" + stamp + ".json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }, []);
+    const importRunsFile = useCallback((file) => {
+        if (!file || !window.Runs)
+            return;
+        const rd = new FileReader();
+        rd.onload = () => {
+            try {
+                const j = JSON.parse(rd.result);
+                const added = window.Runs.importRuns(j);
+                refreshRuns();
+                showToast(added ? `${tr("runsImported")} (${added})` : tr("runsImportedNone"));
+            }
+            catch (err) {
+                showToast(tr("runsImportFailed"));
+            }
+        };
+        rd.readAsText(file);
+    }, [refreshRuns, showToast]);
+    const applyReverseCandidate = useCallback((candidate) => {
+        edit((p) => window.ReverseSolver.applyCandidate(p, candidate));
+        showToast(tr("reverseApplied"));
+        setLatched({});
+    }, [edit, showToast]);
+    // ---- view helpers ---------------------------------------------
+    const fitView = useCallback(() => {
+        const layout = window._canvasLayout;
+        const W = layout?.WORLD_W ?? 1040, H = layout?.WORLD_H ?? 480;
+        const el = document.querySelector(".canvas");
+        if (!el)
+            return;
+        const r = el.getBoundingClientRect();
+        const z = Math.min((r.width - 56) / W, (r.height - 56) / H, 1.4);
+        setView({ z, x: (r.width - W * z) / 2, y: (r.height - H * z) / 2 });
+    }, []);
+    const focusNode = useCallback((id) => {
+        const layout = window._canvasLayout;
+        if (!layout)
+            return;
+        const nd = project.nodes.find((n) => n.id === id);
+        if (!nd)
+            return;
+        const el = document.querySelector(".canvas");
+        if (!el)
+            return;
+        const r = el.getBoundingClientRect();
+        const z = view.z;
+        const cx = nd.x + layout.NODE_W / 2;
+        const cy = nd.y + layout.NODE_H / 2;
+        setView({ z, x: r.width / 2 - cx * z, y: r.height / 2 - cy * z });
+    }, [project.nodes, view.z]);
+    // ---- keyboard shortcuts ---------------------------------------
+    useEffect(() => {
+        const isTyping = (target) => {
+            if (!target)
+                return false;
+            const tag = target.tagName;
+            return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable;
+        };
+        const handler = (e) => {
+            if (isTyping(e.target))
+                return;
+            const meta = e.ctrlKey || e.metaKey;
+            // Undo / Redo
+            if (meta && !e.shiftKey && (e.key === "z" || e.key === "Z")) {
+                e.preventDefault();
+                undo();
+                return;
+            }
+            if (meta && (e.key === "y" || e.key === "Y" || ((e.key === "z" || e.key === "Z") && e.shiftKey))) {
+                e.preventDefault();
+                redo();
+                return;
+            }
+            // Duplicate
+            if (meta && (e.key === "d" || e.key === "D")) {
+                if (selection?.type === "node") {
+                    e.preventDefault();
+                    duplicateNode(selection.id);
+                }
+                return;
+            }
+            // Delete
+            if (!meta && (e.key === "Delete" || e.key === "Backspace")) {
+                if (selection?.type === "node") {
+                    e.preventDefault();
+                    deleteNode(selection.id);
+                }
+                else if (selection?.type === "edge") {
+                    e.preventDefault();
+                    deleteEdge(selection.id);
+                }
+                return;
+            }
+            // Escape: clear selection / close compare / dismiss onboarding
+            if (e.key === "Escape") {
+                if (compareOpen) {
+                    setCompareOpen(false);
+                    return;
+                }
+                if (onboardStep >= 0) {
+                    setOnboardStep(-1);
+                    try {
+                        localStorage.setItem("bionet.onboarded", "1");
+                    }
+                    catch (err) { }
+                    return;
+                }
+                if (selection)
+                    setSelection(null);
+                return;
+            }
+            // F: fit view, or focus selected node
+            if (!meta && (e.key === "f" || e.key === "F")) {
+                e.preventDefault();
+                if (selection?.type === "node")
+                    focusNode(selection.id);
+                else
+                    fitView();
+                return;
+            }
+            // I: toggle edge sign
+            if (!meta && (e.key === "i" || e.key === "I")) {
+                if (selection?.type === "edge") {
+                    const ed = project.edges.find((x) => x.id === selection.id);
+                    if (ed) {
+                        e.preventDefault();
+                        setEdgeParam(selection.id, "sign", ed.sign < 0 ? 1 : -1);
+                    }
+                }
+                return;
+            }
+            // +/-: zoom
+            if (!meta && (e.key === "+" || e.key === "=")) {
+                e.preventDefault();
+                setView((v) => ({ ...v, z: Math.min(2.2, v.z * 1.1) }));
+                return;
+            }
+            if (!meta && (e.key === "-" || e.key === "_")) {
+                e.preventDefault();
+                setView((v) => ({ ...v, z: Math.max(0.45, v.z * 0.9) }));
+                return;
+            }
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, [selection, undo, redo, duplicateNode, deleteNode, deleteEdge, project.edges, setEdgeParam, focusNode, fitView, compareOpen, onboardStep]);
+    const appCls = "app" + (libOpen && page === "workbench" ? "" : " lib-collapsed") + (inspOpen && page === "workbench" ? "" : " insp-collapsed");
+    return (React.createElement("div", { className: appCls + (t.showGrid ? "" : " no-grid") },
+        React.createElement(LeftRail, { page: page, onNav: setPage, theme: t.dark ? "dark" : "light", onTheme: () => setTweak("dark", !t.dark), runsCount: runs.length }),
+        React.createElement(TopBar, { project: project, verdict: verdict, examples: window.Model.EXAMPLES, dirty: dirty, onPickExample: pickExample, onNewProject: newProject, onImport: doImport, onExport: doExportClean, onRun: onRun, lang: lang, onLang: switchLang, libOpen: libOpen, inspOpen: inspOpen, onToggleLib: () => setLibOpen((o) => !o), onToggleInsp: () => setInspOpen((o) => !o), canUndo: canUndo, canRedo: canRedo, onUndo: undo, onRedo: redo, snapshots: snapshots, onSaveSnapshot: saveSnapshot, onClearSnapshot: clearSnapshot, onCompare: openCompare }),
+        page === "workbench" ? (React.createElement(React.Fragment, null,
+            libOpen && (React.createElement(LibraryDock, { project: project, sim: sim, onAddNode: addNode, onQuickInput: (id, v) => setNodeParam(id, "C", v), onSelect: setSelection, selection: selection })),
+            React.createElement("main", { className: "stage", style: { gridArea: "canvas" } },
+                React.createElement(NetworkCanvas, { model: project, sim: sim, selection: selection, onSelect: setSelection, onNodeMove: moveNode, onAddEdge: addEdge, onDeleteNode: deleteNode, onDuplicateNode: duplicateNode, view: view, setView: setView }),
+                React.createElement(ReadoutDock, { project: project, sim: sim, latched: latched, onResetLatch: resetLatch, onAddReadout: addReadout, onRemoveReadout: removeReadout, onConfigure: (id) => setSelection({ type: "readout", id }), onTogglePin: togglePin, collapsed: !dockOpen, onToggleCollapse: () => setDockOpen((o) => !o), verdict: verdict })),
+            inspOpen && (React.createElement(Inspector, { project: project, sim: sim, selection: selection, onParam: setNodeParam, onEdgeParam: setEdgeParam, onEdgeDelete: deleteEdge, onModelParam: setModelParam, onReadout: setReadout, onSelectReadout: (id) => setSelection({ type: "readout", id }) })))) : (React.createElement("main", { className: "stage stage-page" + (page === "runs" ? " runs-mode" : "") + (page === "reverse" ? " reverse-mode" : ""), style: { gridArea: "libdock / libdock / inspector / inspector" } }, page === "runs"
+            ? React.createElement(RunsPage, { runs: runs, onBack: () => setPage("workbench"), onDelete: deleteRun, onClearAll: clearRuns, onRestore: restoreRun, onUpdateNote: updateRunNote, onExport: exportRuns, onImportFile: importRunsFile })
+            : page === "reverse"
+                ? React.createElement(ReversePage, { project: project, onBack: () => setPage("workbench"), onApply: applyReverseCandidate })
+                : React.createElement(PlaceholderPage, { page: page, onBack: () => setPage("workbench") }))),
+        React.createElement("input", { ref: fileRef, type: "file", accept: "application/json", style: { display: "none" }, onChange: onFile }),
+        compareOpen && (React.createElement(ComparePanel, { project: project, snapshots: snapshots, onClose: closeCompare, onClearSnapshot: clearSnapshot })),
+        onboardStep >= 0 && (React.createElement(OnboardingOverlay, { step: onboardStep, onNext: () => setOnboardStep((s) => s + 1), onDone: () => { setOnboardStep(-1); try {
+                localStorage.setItem("bionet.onboarded", "1");
+            }
+            catch (err) { } } })),
+        toast && React.createElement("div", { className: "toast" }, toast.text),
+        React.createElement(TweaksPanel, { title: tr("settings") },
+            React.createElement(TweakSection, { label: tr("theme") }),
+            React.createElement(TweakToggle, { label: tr("darkMode"), value: t.dark, onChange: (v) => setTweak("dark", v) }),
+            React.createElement(TweakColor, { label: tr("accent"), value: t.accent, options: ["#3E8EF7", "#2DBE9E", "#3FCB84", "#E6B24A", "#E8709E"], onChange: (v) => setTweak("accent", v) }),
+            React.createElement(TweakSection, { label: tr("workspace") }),
+            React.createElement(TweakRadio, { label: tr("density"), value: t.density, options: [
+                    { value: "compact", label: tr("compact") },
+                    { value: "regular", label: tr("regular") },
+                    { value: "comfy", label: tr("comfy") },
+                ], onChange: (v) => setTweak("density", v) }),
+            React.createElement(TweakToggle, { label: tr("canvasGrid"), value: t.showGrid, onChange: (v) => setTweak("showGrid", v) }))));
+}
+/* ---- color helpers -------------------------------------------- */
+function hexToRgb(h) { const x = h.replace("#", ""); return [parseInt(x.slice(0, 2), 16), parseInt(x.slice(2, 4), 16), parseInt(x.slice(4, 6), 16)]; }
+function rgbToHex(r) { return "#" + r.map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join(""); }
+function shade(h, pct) { return rgbToHex(hexToRgb(h).map((v) => v + (pct / 100) * 255)); }
+function mix(a, b, wb) { const x = hexToRgb(a), y = hexToRgb(b); return rgbToHex(x.map((v, i) => v * (1 - wb) + y[i] * wb)); }
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App, null));

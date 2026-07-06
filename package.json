@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
-    "test": "node tests/sim.basic.test.mjs && node tests/json.import-export.test.mjs",
+    "test": "node tests/sim.basic.test.mjs && node tests/json.import-export.test.mjs && node tests/reverse-solver.test.mjs",
     "verify:static": "node scripts/verify-static-build.mjs",
     "verify": "npm run typecheck && npm test && npm run build && npm run verify:static"
   },

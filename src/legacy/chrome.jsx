@@ -9,7 +9,7 @@ const RAIL_ITEMS = [
   { id: "workbench", labelKey: "navWorkbench", icon: "workbench" },
   { id: "library",   labelKey: "navLibrary", icon: "library" },
   { id: "runs",      labelKey: "navRuns", icon: "runs" },
-  { id: "reverse",   labelKey: "navReverse", icon: "reverse", soon: true },
+  { id: "reverse",   labelKey: "navReverse", icon: "reverse" },
 ];
 
 function LeftRail({ page, onNav, theme, onTheme, runsCount }) {
